@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>IITM Scholar Hub | Grade Calculator, End Term Marks Predictor & Learning Roadmaps</title>
+  <meta name="description"
+    content="IITM Scholar Hub offers essential tools for IIT Madras students: Grade Calculator, End Term Marks Predictor, Resume Generator, and curated Learning Roadmaps for Data Science, Web Development, Python, Java & DSA." />
+  <meta name="keywords"
+    content="IITM Scholar Hub, Grade Calculator for IIT Madras, End Term Marks Predictor for IIT Madras, Resume Generator for IIT Madras students, Data Science Learning Roadmap, Web Development Learning Roadmap, Python Learning Roadmap, Java Learning Roadmap, DSA Learning Roadmap, Quiz Practice for IIT Madras" />
+  <meta name="author" content="IITM Scholar Hub" />
+
+  <!-- Performance optimizations -->
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="preload" href="/iitm-logo.svg" as="image" type="image/svg+xml" />
+  <link rel="preload" href="/assets/vendor-react.js" as="script" />
+  <link rel="dns-prefetch" href="https://openrouter.ai" />
+
+  <!-- PWA support -->
+  <link rel="manifest" href="/app.webmanifest" />
+  <meta name="theme-color" content="#3b82f6" />
+  <link rel="icon" type="image/svg+xml" href="/iitm-logo.svg" />
+  <link rel="apple-touch-icon" href="/icon-192x192.png" />
+
+  <!-- Facebook Meta Tags -->
+  <meta property="og:url" content="https://iitm-scholar-hub.vercel.app/">
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="IITM Scholar Hub | Grade Calculator, End Term Marks Predictor & Learning Roadmaps">
+  <meta property="og:description"
+    content="IITM Scholar Hub offers essential tools for IIT Madras students: Grade Calculator, End Term Marks Predictor, Resume Generator, and Learning Roadmaps for Data Science, Web Development, Python, Java & DSA.">
+  <meta property="og:image" content="/og-image.png">
+
+  <!-- Twitter Meta Tags -->
+  <meta name="twitter:card" content="summary_large_image">
+  <meta property="twitter:domain" content="iitm-scholar-hub.vercel.app">
+  <meta property="twitter:url" content="https://iitm-scholar-hub.vercel.app/">
+  <meta name="twitter:title"
+    content="IITM Scholar Hub | Grade Calculator, End Term Marks Predictor & Learning Roadmaps">
+  <meta name="twitter:description"
+    content="IITM Scholar Hub offers essential tools for IIT Madras students: Grade Calculator, End Term Marks Predictor, Resume Generator, and Learning Roadmaps for various domains.">
+  <meta name="twitter:image" content="/og-image.png">
+
+  <!-- Structured Data for Rich Snippets -->
+  <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "EducationalApplication",
+        "name": "IITM Scholar Hub",
+        "description": "Educational platform for IIT Madras students with Grade Calculator, End Term Marks Predictor, Resume Generator, and Learning Roadmaps for multiple domains.",
+        "operatingSystem": "Web",
+        "applicationCategory": "EducationalApplication",
+        "offers": {
+          "@type": "Offer",
+          "price": "0",
+          "priceCurrency": "INR"
+        },
+        "audience": {
+          "@type": "Audience",
+          "audienceType": "IIT Madras Students"
+        }
+      }
+    </script>
+</head>
+
+<body>
+  <div id="root"></div>
+  <script type="module" src="/src/main.tsx"></script>
+
+  <!-- Service worker registration -->
+  <script>
+    // Register service worker for production
+    if ('serviceWorker' in navigator && window.location.hostname !== 'localhost') {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('/sw.js').catch(error => {
+          console.error('Service worker registration failed:', error);
+        });
+      });
+    }
+  </script>
+</body>
+
+</html>

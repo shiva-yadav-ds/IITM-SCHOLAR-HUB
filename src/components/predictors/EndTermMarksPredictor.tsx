@@ -1,0 +1,554 @@
+"use client";
+
+import { useState, useEffect, useMemo, useCallback, memo } from 'react';
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Calculator, X, Check, ChevronDown, ChevronUp } from 'lucide-react';
+import {
+  foundationSubjects,
+  getRequiredFields as getFoundationRequiredFields,
+  calculatePredictions as calculateFoundationPredictions,
+  gradeThresholds,
+  foundation,
+  diploma,
+  degree
+} from "@/lib/endterm-marks-predictor";
+import { getFormulaWeightage, calculateAchievedScore } from "@/lib/endterm-marks-predictor/formula-utils";
+import PredictionGraph from './PredictionGraph';
+
+// Constants for localStorage keys
+const STORAGE_KEYS = {
+  SELECTED_SUBJECT: 'endTermMarksPredictor.selectedSubject',
+  FORM_VALUES: 'endTermMarksPredictor.formValues'
+};
+
+// Field Label mapping
+const fieldLabels: Record<string, string> = {
+  gaa: "GAA (Weekly assignments average)",
+  gaa1: "GAA1 (Objective assignments)",
+  gaa2: "GAA2 (Programming assignments)",
+  gaap: "GAAP (Programming assignments average)",
+  gpa: "GPA (Graded Programming Assignments)",
+  quiz1: "Quiz 1 Score",
+  quiz2: "Quiz 2 Score",
+  quiz3: "Quiz 3 Score",
+  pe1: "Programming Exam 1 Score",
+  pe2: "Programming Exam 2 Score",
+  oppe1: "Online Proctored Programming Exam 1",
+  oppe2: "Online Proctored Programming Exam 2",
+  nppe1: "Non-Proctored Programming Assignment 1",
+  nppe2: "Non-Proctored Programming Assignment 2",
+  nppe3: "Non-Proctored Programming Assignment 3",
+  gp: "Group Project Score",
+  gp1: "Group Project Score (Milestone 1-3)",
+  gp2: "Group Project Score (Milestone 4-6)",
+  pp: "Project Presentation Score",
+  cp: "Course Participation Activity",
+  bonus: "Bonus Marks"
+};
+
+interface EndTermMarksPredictorProps {
+  level: 'foundation' | 'diploma' | 'degree';
+}
+
+// Create a memoized component for PredictionGraph
+const MemoizedPredictionGraph = memo(PredictionGraph);
+
+// Create a memoized InputField component
+const InputField = memo(({
+  field,
+  label,
+  value,
+  onChange
+}: {
+  field: string;
+  label: string;
+  value: string | number;
+  onChange: (field: string, value: string) => void;
+}) => (
+  <div
+    className="group flex flex-col space-y-2 bg-gradient-to-br from-gray-800/50 to-gray-900/50 p-4 rounded-md border border-gray-700/50 transition-all duration-300 hover:border-blue-500/30 hover:from-gray-800/60 hover:to-gray-900/60"
+  >
+    <Label className="text-sm font-medium text-gray-300 group-hover:text-gray-200">
+      {label}
+    </Label>
+    <Input
+      type="number"
+      min="0"
+      max={field.includes('bonus') ? '5' : '100'}
+      step="0.01"
+      placeholder="Enter score"
+      value={value !== undefined ? value : ''}
+      onChange={(e) => onChange(field, e.target.value)}
+      className="bg-gray-900/80 border-gray-700 focus:border-blue-500/50 text-white placeholder:text-gray-500"
+    />
+  </div>
+));
+
+// Create a memoized ResultCard component
+const ResultCard = memo(({
+  prediction,
+  index,
+  isSelected,
+  onSelect
+}: {
+  prediction: foundation.PredictionResult;
+  index: number;
+  isSelected: boolean;
+  onSelect: (index: number) => void;
+}) => {
+  const isAchievable = prediction.achievable;
+  const requiredScore = prediction.required;
+  const requiredPercentage = requiredScore > 100 ? 100 : requiredScore;
+
+  return (
+    <Card className={`
+      overflow-hidden border-gray-800 cursor-pointer transition-all duration-300 transform
+      ${isSelected ? 'scale-105 ring-2 ring-iitm-blue shadow-lg' : ''}
+      ${!isAchievable ? 'opacity-70' : ''}
+    `}
+    >
+      <CardHeader className="bg-gradient-to-r from-iitm-dark to-iitm-dark/80 py-4 px-5">
+        <CardTitle className="text-base sm:text-lg">Grade {prediction.grade}</CardTitle>
+      </CardHeader>
+      <CardContent
+        className="p-4 bg-gradient-to-br from-gray-900 to-gray-900/90"
+        onClick={() => isAchievable && onSelect(index)}
+      >
+        <div className="text-center">
+          <div className={`text-lg font-bold mb-2 ${isAchievable ? 'text-iitm-blue' : 'text-red-400'}`}>
+            {isAchievable ? (
+              <>
+                <Check className="w-5 h-5 inline mr-1" />
+                <span>Achievable</span>
+              </>
+            ) : (
+              <>
+                <X className="w-5 h-5 inline mr-1" />
+                <span>Not Achievable</span>
+              </>
+            )}
+          </div>
+
+          <div className="mb-4">
+            <div className="text-sm text-gray-400">Required in Final Exam:</div>
+            <div className="text-xl font-bold mt-1">
+              {requiredScore > 100 ? (
+                <span className="text-red-400">Not Possible</span>
+              ) : requiredScore < 0 ? (
+                <span className="text-green-400">Already Achieved!</span>
+              ) : (
+                <span>{requiredScore.toFixed(2)}%</span>
+              )}
+            </div>
+          </div>
+
+          {isAchievable && requiredScore >= 0 && requiredScore <= 100 && (
+            <div className="h-2 bg-gray-700 rounded-full overflow-hidden">
+              <div
+                className="h-full bg-iitm-blue rounded-full"
+                style={{ width: `${requiredPercentage}%` }}
+              ></div>
+            </div>
+          )}
+        </div>
+      </CardContent>
+    </Card>
+  );
+});
+
+export default function EndTermMarksPredictor({ level = 'foundation' }: EndTermMarksPredictorProps) {
+  // State for form values and results
+  const [selectedSubject, setSelectedSubject] = useState("");
+  const [formValues, setFormValues] = useState<Record<string, string | number>>({});
+  const [requiredFields, setRequiredFields] = useState<string[]>([]);
+  const [predictions, setPredictions] = useState<foundation.PredictionResult[]>([]);
+  const [eligibilityError, setEligibilityError] = useState<string | null>(null);
+  const [currentComponents, setCurrentComponents] = useState<Record<string, number>>({});
+
+  // New state variables for visualization
+  const [showGraph, setShowGraph] = useState(false);
+  const [selectedGradeIndex, setSelectedGradeIndex] = useState(0);
+  const [formulaWeightage, setFormulaWeightage] = useState<Record<string, number>>({});
+  const [totalAchieved, setTotalAchieved] = useState(0);
+
+  // Get subject list based on level - memoized to avoid recalculation
+  const subjectList = useMemo(() => {
+    if (level === 'diploma') {
+      return diploma.diplomaSubjects;
+    } else if (level === 'degree') {
+      return degree.degreeSubjects;
+    }
+    return foundationSubjects;
+  }, [level]);
+
+  // Load saved data from localStorage on initial mount
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      // Load selected subject
+      const savedSubject = localStorage.getItem(`${level}.${STORAGE_KEYS.SELECTED_SUBJECT}`);
+      if (savedSubject) {
+        setSelectedSubject(savedSubject);
+      }
+
+      // Load form values
+      const savedFormValues = localStorage.getItem(`${level}.${STORAGE_KEYS.FORM_VALUES}`);
+      if (savedFormValues) {
+        try {
+          setFormValues(JSON.parse(savedFormValues));
+        } catch (e) {
+          console.error("Error parsing saved form values", e);
+          localStorage.removeItem(`${level}.${STORAGE_KEYS.FORM_VALUES}`);
+        }
+      }
+    }
+  }, [level]);
+
+  // Update required fields when subject changes
+  useEffect(() => {
+    if (!selectedSubject) {
+      setRequiredFields([]);
+      return;
+    }
+
+    // Update required fields based on level
+    let fields: string[] = [];
+    if (level === 'diploma') {
+      fields = diploma.getRequiredFields(selectedSubject);
+    } else if (level === 'degree') {
+      fields = degree.getRequiredFields(selectedSubject);
+    } else {
+      fields = getFoundationRequiredFields(selectedSubject);
+    }
+
+    setRequiredFields(fields);
+
+    // Clear predictions when subject changes
+    setPredictions([]);
+    setEligibilityError(null);
+
+    // Only reset form values when subject actually changes, not on initial load
+    const prevSubject = localStorage.getItem(`${level}.${STORAGE_KEYS.SELECTED_SUBJECT}`);
+    if (prevSubject && prevSubject !== selectedSubject) {
+      setFormValues({});
+      localStorage.removeItem(`${level}.${STORAGE_KEYS.FORM_VALUES}`);
+    }
+
+    // Save the selected subject to localStorage
+    localStorage.setItem(`${level}.${STORAGE_KEYS.SELECTED_SUBJECT}`, selectedSubject);
+  }, [selectedSubject, level]);
+
+  // Handle input change with useCallback to prevent unnecessary re-renders
+  const handleInputChange = useCallback((field: string, value: string) => {
+    // Parse the value to a number or keep as empty string
+    const numValue = value === '' ? '' : parseFloat(value);
+
+    // Update form values
+    setFormValues(prevValues => {
+      const updatedValues = { ...prevValues, [field]: numValue };
+
+      // Save to localStorage
+      try {
+        localStorage.setItem(`${level}.${STORAGE_KEYS.FORM_VALUES}`, JSON.stringify(updatedValues));
+      } catch (e) {
+        console.error("Error saving form values", e);
+      }
+
+      return updatedValues;
+    });
+  }, [level]);
+
+  // Reset form with useCallback
+  const resetForm = useCallback(() => {
+    setSelectedSubject("");
+    setFormValues({});
+    setPredictions([]);
+    setEligibilityError(null);
+    setCurrentComponents({});
+    setShowGraph(false);
+    setSelectedGradeIndex(0);
+    setFormulaWeightage({});
+    setTotalAchieved(0);
+
+    // Clear localStorage values
+    localStorage.removeItem(`${level}.${STORAGE_KEYS.SELECTED_SUBJECT}`);
+    localStorage.removeItem(`${level}.${STORAGE_KEYS.FORM_VALUES}`);
+  }, [level]);
+
+  // Toggle graph visibility with useCallback
+  const toggleGraph = useCallback(() => {
+    setShowGraph(prev => !prev);
+  }, []);
+
+  // Set selected grade index with useCallback
+  const handleSelectGrade = useCallback((index: number) => {
+    setSelectedGradeIndex(index);
+  }, []);
+
+  // Calculate predictions with useCallback
+  const calculateResults = useCallback(() => {
+    // Validate that all required fields have values
+    const missingFields = requiredFields.filter(field => {
+      const value = formValues[field];
+      return value === undefined || value === '';
+    });
+
+    if (missingFields.length > 0) {
+      setEligibilityError(`Please enter values for all required fields: ${missingFields.map(f => fieldLabels[f] || f).join(', ')}`);
+      setPredictions([]);
+      setShowGraph(false);
+      return;
+    }
+
+    // Convert all form values to numbers
+    const numericValues: Record<string, number> = {};
+    requiredFields.forEach(field => {
+      const value = formValues[field];
+      numericValues[field] = typeof value === 'string' ? parseFloat(value) : (value as number);
+    });
+
+    // Get formula weightage for visualization
+    const weightage = getFormulaWeightage(selectedSubject);
+    setFormulaWeightage(weightage);
+
+    // Calculate current components for visualization
+    const componentValues: Record<string, number> = {};
+    Object.keys(numericValues).forEach(key => {
+      componentValues[key] = numericValues[key];
+    });
+    setCurrentComponents(componentValues);
+
+    // Calculate total achieved score based on formula weightage
+    const achieved = calculateAchievedScore(componentValues, weightage);
+    setTotalAchieved(achieved);
+
+    // Create the input for calculation
+    const input = {
+      subject: selectedSubject,
+      ...numericValues
+    };
+
+    let results;
+    // Calculate the predictions based on level
+    if (level === 'diploma') {
+      results = diploma.calculatePredictions(input);
+    } else if (level === 'degree') {
+      results = degree.calculatePredictions(input);
+    } else {
+      results = calculateFoundationPredictions(input);
+    }
+
+    // Check if there's any eligibility error
+    const notAchievable = results.every(result => !result.achievable);
+    if (notAchievable && results[0].required === 0) {
+      setEligibilityError("You're not eligible to write the final exam.");
+      setShowGraph(false);
+    } else {
+      setEligibilityError(null);
+      // Show graph by default when there are valid results
+      setShowGraph(true);
+      // Select first achievable grade by default
+      const achievableIndex = results.findIndex(result => result.achievable);
+      setSelectedGradeIndex(achievableIndex >= 0 ? achievableIndex : 0);
+    }
+
+    setPredictions(results);
+  }, [formValues, level, requiredFields, selectedSubject]);
+
+  // Memoized required score display component
+  const RequiredScoreDisplay = memo(({
+    totalAchieved,
+    selectedPrediction
+  }: {
+    totalAchieved: number;
+    selectedPrediction: foundation.PredictionResult;
+  }) => {
+    const requiredScore = selectedPrediction.required < 0 ? 0 : selectedPrediction.required;
+
+    return (
+      <div className="mb-6 p-5 bg-gradient-to-br from-gray-800/80 to-gray-900/80 rounded-xl border border-gray-700/50">
+        <h4 className="text-lg font-semibold text-white mb-3">What You Need</h4>
+        <div className="text-gray-300 space-y-2">
+          {requiredScore <= 0 ? (
+            <p className="text-green-400 font-medium">
+              You have already achieved grade {selectedPrediction.grade} or better! No need to score anything in the final exam.
+            </p>
+          ) : (
+            <>
+              <p>
+                <span className="font-medium text-blue-400">Current score:</span> {totalAchieved.toFixed(2)} / 100
+              </p>
+              <p>
+                <span className="font-medium text-yellow-400">Required in final exam:</span> {requiredScore.toFixed(2)}% to achieve grade {selectedPrediction.grade}
+              </p>
+              <div className="h-4 bg-gray-700 rounded-full overflow-hidden mt-4">
+                <div
+                  className="h-full bg-blue-600"
+                  style={{ width: `${requiredScore > 100 ? 100 : requiredScore}%` }}
+                ></div>
+              </div>
+            </>
+          )}
+        </div>
+      </div>
+    );
+  });
+
+  // Render input fields - memoized to avoid re-renders
+  const renderInputFields = useMemo(() => {
+    if (requiredFields.length === 0) return null;
+
+    return (
+      <div className="bg-gradient-to-br from-gray-900/30 to-gray-800/30 p-5 rounded-lg border border-gray-700/40 backdrop-blur-sm">
+        <h3 className="text-lg font-semibold mb-4 text-center">Enter Your Current Scores</h3>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-5 w-full">
+          {requiredFields.map((field) => (
+            <InputField
+              key={field}
+              field={field}
+              label={fieldLabels[field] || field}
+              value={formValues[field] !== undefined ? formValues[field] : ''}
+              onChange={handleInputChange}
+            />
+          ))}
+        </div>
+        <div className="mt-6 flex justify-center">
+          <Button
+            onClick={calculateResults}
+            className="bg-iitm-blue hover:bg-blue-700 text-white py-2 px-6 rounded-lg flex items-center gap-2 transition-all"
+          >
+            <Calculator className="w-5 h-5" />
+            Calculate
+          </Button>
+        </div>
+      </div>
+    );
+  }, [requiredFields, formValues, handleInputChange, calculateResults]);
+
+  // Render results - memoized to avoid re-renders
+  const renderResults = useMemo(() => {
+    if (!predictions.length) return null;
+
+    return (
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mt-6">
+        {predictions.map((prediction, index) => (
+          <ResultCard
+            key={`${prediction.grade}-${index}`}
+            prediction={prediction}
+            index={index}
+            isSelected={index === selectedGradeIndex}
+            onSelect={handleSelectGrade}
+          />
+        ))}
+      </div>
+    );
+  }, [predictions, selectedGradeIndex, handleSelectGrade]);
+
+  // Render visualization - memoized to avoid re-renders
+  const renderVisualization = useMemo(() => {
+    if (!showGraph || !predictions.length || selectedGradeIndex === null) return null;
+
+    const selectedPrediction = predictions[selectedGradeIndex];
+    if (!selectedPrediction) return null;
+
+    // Ensure prediction is achievable before showing details
+    if (!selectedPrediction.achievable || selectedPrediction.required > 100) {
+      return (
+        <div className="mt-6 p-4 bg-red-900/20 border border-red-700/30 rounded-lg text-center">
+          <p className="text-red-400 font-medium">This grade is not achievable with your current scores.</p>
+        </div>
+      );
+    }
+
+    return (
+      <div className="mt-8">
+        <div className="mb-4 flex items-center justify-between">
+          <h3 className="text-xl font-bold text-white">Detailed Analysis</h3>
+          <Button
+            onClick={toggleGraph}
+            variant="ghost"
+            className="text-blue-400 hover:text-blue-300 hover:bg-blue-900/20"
+          >
+            {showGraph ? (
+              <>
+                <ChevronUp className="w-4 h-4 mr-1" />
+                Hide Graph
+              </>
+            ) : (
+              <>
+                <ChevronDown className="w-4 h-4 mr-1" />
+                Show Graph
+              </>
+            )}
+          </Button>
+        </div>
+
+        <RequiredScoreDisplay
+          totalAchieved={totalAchieved}
+          selectedPrediction={selectedPrediction}
+        />
+
+        <div className="h-[400px] mb-6">
+          <MemoizedPredictionGraph
+            predictions={predictions}
+            selectedIndex={selectedGradeIndex}
+            onSelectGrade={handleSelectGrade}
+            components={currentComponents}
+            formulaWeightage={formulaWeightage}
+            totalAchieved={totalAchieved}
+          />
+        </div>
+      </div>
+    );
+  }, [predictions, selectedGradeIndex, showGraph, toggleGraph, totalAchieved, handleSelectGrade, selectedSubject, currentComponents, formulaWeightage]);
+
+  return (
+    <div className="space-y-6">
+      <div className="bg-gradient-to-br from-gray-900/30 to-gray-800/30 p-5 rounded-lg border border-gray-700/40 backdrop-blur-sm">
+        <h2 className="text-xl font-bold mb-4 text-center">Select Your Course</h2>
+        <div className="flex flex-col sm:flex-row justify-between gap-4">
+          <div className="flex-grow w-full">
+            <Select value={selectedSubject} onValueChange={setSelectedSubject}>
+              <SelectTrigger className="w-full bg-gray-900/80 border-gray-700 focus:border-blue-500/50 text-white">
+                <SelectValue placeholder="Select a subject" />
+              </SelectTrigger>
+              <SelectContent className="bg-gray-900 border-gray-700 text-white">
+                {subjectList.map((subject) => (
+                  <SelectItem key={subject.code} value={subject.code}>
+                    {subject.label || subject.code}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          <Button
+            onClick={resetForm}
+            variant="outline"
+            className="ml-0 sm:ml-4 text-red-400 border-red-500/30 hover:bg-red-900/20 hover:text-red-300"
+          >
+            Reset
+          </Button>
+        </div>
+      </div>
+
+      {/* Input Fields */}
+      {renderInputFields}
+
+      {/* Error Message */}
+      {eligibilityError && (
+        <div className="p-4 bg-red-900/20 border border-red-700/30 rounded-lg text-center">
+          <p className="text-red-400 font-medium">{eligibilityError}</p>
+        </div>
+      )}
+
+      {/* Results */}
+      {renderResults}
+
+      {/* Visualization */}
+      {renderVisualization}
+    </div>
+  );
+} 

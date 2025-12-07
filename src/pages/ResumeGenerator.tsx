@@ -1,0 +1,187 @@
+import React, { useState } from 'react';
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
+import { CheckCircle2, FileText } from "lucide-react";
+import MainLayout from "@/components/MainLayout";
+import PageHeader from "@/components/PageHeader";
+import { ResumeForm } from "@/components/resume/ResumeForm";
+import { TemplateSelector } from "@/components/resume/TemplateSelector";
+import { ResumePreview } from "@/components/resume/ResumePreview";
+import { ResumeData, defaultResumeData } from "@/types/resume";
+import { cn } from "@/lib/utils";
+import { Helmet } from 'react-helmet';
+
+const steps = [
+  { id: "personal", label: "Personal Info" },
+  { id: "education", label: "Education" },
+  { id: "experience", label: "Experience" },
+  { id: "skills", label: "Skills" },
+  { id: "projects", label: "Projects" },
+  { id: "additional", label: "Additional Info" },
+  { id: "template", label: "Choose Template" },
+  { id: "preview", label: "Preview & Download" },
+];
+
+const ResumeGenerator = () => {
+  const [currentStep, setCurrentStep] = useState(0);
+  const [resumeData, setResumeData] = useState<ResumeData>(defaultResumeData);
+  const [selectedTemplate, setSelectedTemplate] = useState("professional");
+  const [completedSteps, setCompletedSteps] = useState<number[]>([]);
+  
+  const nextStep = () => {
+    if (currentStep < steps.length - 1) {
+      // Mark current step as completed
+      if (!completedSteps.includes(currentStep)) {
+        setCompletedSteps([...completedSteps, currentStep]);
+      }
+      setCurrentStep(currentStep + 1);
+      
+      // Scroll to top when moving to next step
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  };
+  
+  const prevStep = () => {
+    if (currentStep > 0) {
+      setCurrentStep(currentStep - 1);
+      
+      // Scroll to top when moving to previous step
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  };
+
+  const goToStep = (index: number) => {
+    // Only allow navigation to completed steps or the current step + 1
+    if (completedSteps.includes(index) || index === currentStep || index === 0) {
+      setCurrentStep(index);
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  };
+  
+  const updateResumeData = (sectionKey: keyof ResumeData, data: any) => {
+    setResumeData(prev => ({
+      ...prev,
+      [sectionKey]: data
+    }));
+  };
+  
+  return (
+    <MainLayout>
+      <Helmet>
+        <title>Resume Generator & Professional Resume Builder | IITM Scholar Hub</title>
+        <meta name="description" content="Create a professional resume in minutes with our free resume generator. Choose from elegant templates, get AI suggestions, and download your resume in multiple formats. Best resume builder for students and professionals." />
+        <meta name="keywords" content="free resume generator, resume builder, CV maker, automatic resume maker, professional resume builder, free resume templates, student resume maker, IIT resume builder, best resume generator" />
+        <meta property="og:title" content="Free Resume Generator & Professional Resume Builder | IITM Scholar Hub" />
+        <meta property="og:description" content="Create a professional resume in minutes with our free resume generator. Best resume builder for students and professionals." />
+        <meta property="og:type" content="website" />
+        <meta property="og:site_name" content="IITM Scholar Hub" />
+        <meta property="og:url" content="https://iitm-scholar-hub.vercel.app/resume-generator" />
+        <meta property="og:image" content="https://iitm-scholar-hub.vercel.app/og-image.svg" />
+        <meta property="og:image:width" content="1200" />
+        <meta property="og:image:height" content="630" />
+        <meta name="twitter:title" content="Free Resume Generator & Builder | IITM Scholar Hub" />
+        <meta name="twitter:description" content="Create a professional resume in minutes with our free resume generator." />
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:image" content="https://iitm-scholar-hub.vercel.app/og-image.svg" />
+      </Helmet>
+      <div className="container max-w-7xl mx-auto px-4 py-8">
+        <PageHeader 
+          title="Resume Generator" 
+          description="Create a professional resume tailored for students to highlight your academic achievements"
+          icon={FileText} 
+        />
+
+        
+        {/* Improved Progress indicator */}
+        <div className="w-full mb-12 mt-8 px-4">
+          <div className="relative flex items-center justify-between">
+            {/* Progress bar */}
+            <div className="absolute left-0 top-1/2 h-1 bg-gray-200 dark:bg-gray-700 transform -translate-y-1/2 w-full rounded-full"></div>
+            <div 
+              className="absolute left-0 top-1/2 h-1 bg-blue-600 dark:bg-blue-500 transform -translate-y-1/2 rounded-full transition-all duration-300"
+              style={{ width: `${(currentStep / (steps.length - 1)) * 100}%` }}
+            ></div>
+            
+            {/* Step circles */}
+            {steps.map((step, index) => {
+              const isCompleted = completedSteps.includes(index);
+              const isCurrent = currentStep === index;
+              const isActive = index <= currentStep;
+              
+              return (
+                <div 
+                  key={step.id}
+                  className={cn(
+                    "relative flex flex-col items-center group",
+                    isActive ? "cursor-pointer" : "cursor-not-allowed"
+                  )}
+                  onClick={() => goToStep(index)}
+                >
+                  <div className={cn(
+                    "w-10 h-10 rounded-full flex items-center justify-center border-2 transition-all duration-200 shadow-md z-10",
+                    isCompleted ? "bg-green-500 border-green-600 text-white" : 
+                    isCurrent ? "bg-blue-600 border-blue-700 text-white" :
+                    isActive ? "bg-white dark:bg-gray-800 border-blue-500 text-blue-600 dark:text-blue-400" :
+                    "bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-600 text-gray-400"
+                  )}>
+                    {isCompleted ? <CheckCircle2 className="w-5 h-5" /> : index + 1}
+                  </div>
+                  
+                  {/* Label */}
+                  <span className={cn(
+                    "text-xs font-medium mt-2 absolute top-full whitespace-nowrap -translate-x-1/2 left-1/2 transform",
+                    "opacity-0 group-hover:opacity-100 transition-opacity",
+                    isCompleted ? "text-green-600 dark:text-green-400" :
+                    isCurrent ? "text-blue-600 dark:text-blue-400" :
+                    isActive ? "text-gray-700 dark:text-gray-300" :
+                    "text-gray-400 dark:text-gray-500"
+                  )}>
+                    {step.label}
+                  </span>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+        
+        {/* Current step indicator - mobile friendly version */}
+        <div className="mb-6 text-center md:hidden">
+          <span className="text-sm text-gray-500 dark:text-gray-400">
+            Step {currentStep + 1} of {steps.length}: 
+          </span>
+          <span className="ml-2 font-semibold text-blue-600 dark:text-blue-400">
+            {steps[currentStep].label}
+          </span>
+        </div>
+        
+        {/* Step content */}
+        <div className="bg-white dark:bg-gray-800 shadow-md rounded-lg p-6 mb-8">
+          {currentStep < 6 ? (
+            <ResumeForm 
+              step={steps[currentStep].id as keyof ResumeData} 
+              data={resumeData}
+              updateData={updateResumeData}
+              onNext={nextStep}
+              onPrev={prevStep}
+            />
+          ) : currentStep === 6 ? (
+            <TemplateSelector 
+              selectedTemplate={selectedTemplate}
+              onSelectTemplate={setSelectedTemplate}
+              data={resumeData}
+            />
+          ) : (
+            <ResumePreview 
+              template={selectedTemplate}
+              resumeData={resumeData}
+              onPrev={prevStep}
+            />
+          )}
+        </div>
+      </div>
+    </MainLayout>
+  );
+};
+
+export default ResumeGenerator;
