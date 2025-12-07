@@ -95,6 +95,16 @@ const Index = () => {
                 </div>
               )}
 
+              {/* CGPA Calculator */}
+              <div className="feature-card opacity-0">
+                <FeatureCard
+                  title="CGPA Calculator"
+                  description="Calculate your cumulative GPA across all courses using the official IIT Madras grading system. Guided step-by-step mode for all program levels."
+                  icon={Calculator}
+                  path="/cgpa-calculator"
+                />
+              </div>
+
               {showFeatures.resumeGenerator ? (
                 <div className="feature-card opacity-0">
                   <FeatureCard

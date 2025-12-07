@@ -35,6 +35,11 @@ const Footer = () => {
                 </Link>
               </li>
               <li>
+                <Link to="/cgpa-calculator" className="text-gray-400 hover:text-iitm-blue transition-colors">
+                  CGPA Calculator
+                </Link>
+              </li>
+              <li>
                 <Link to="/resume-generator" className="text-gray-400 hover:text-iitm-blue transition-colors">
                   Resume Generator
                 </Link>
@@ -42,6 +47,11 @@ const Footer = () => {
               <li>
                 <Link to="/roadmaps" className="text-gray-400 hover:text-iitm-blue transition-colors">
                   Learning Roadmaps
+                </Link>
+              </li>
+              <li>
+                <Link to="/python-cheatsheet" className="text-gray-400 hover:text-iitm-blue transition-colors">
+                  Python Cheatsheet
                 </Link>
               </li>
               <li>

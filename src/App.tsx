@@ -12,7 +12,9 @@ import ChatWidgetProvider from "./components/ChatWidgetProvider";
 // Use React.lazy for code splitting (only load components when needed)
 const ResumeGenerator = lazy(() => import("./pages/ResumeGenerator"));
 const GradeCalculator = lazy(() => import("./pages/GradeCalculator"));
+const CGPACalculator = lazy(() => import("./pages/CGPACalculator"));
 const EndTermMarksPredictor = lazy(() => import("./pages/EndTermMarksPredictor"));
+const PythonCheatsheet = lazy(() => import("./pages/PythonCheatsheet"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 const RoadmapListing = lazy(() => import("./pages/RoadmapListing"));
 const RoadmapDetail = lazy(() => import("./pages/RoadmapDetail"));
@@ -103,9 +105,11 @@ const App = () => {
                 <Route path="/about" element={<About />} />
                 <Route path="/resume-generator" element={<ResumeGenerator />} />
                 <Route path="/grade-calculator" element={<GradeCalculator />} />
+                <Route path="/cgpa-calculator" element={<CGPACalculator />} />
                 <Route path="/endterm-marks-predictor" element={<EndTermMarksPredictor />} />
                 <Route path="/roadmaps" element={<RoadmapListing />} />
                 <Route path="/roadmaps/:id" element={<RoadmapDetail />} />
+                <Route path="/python-cheatsheet" element={<PythonCheatsheet />} />
                 <Route path="/ai-assistant" element={<AiAssistant />} />
                 <Route path="*" element={<NotFound />} />
               </Routes>

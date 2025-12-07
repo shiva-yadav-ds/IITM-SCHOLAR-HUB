@@ -32,6 +32,14 @@
     <priority>0.9</priority>
   </url>
   
+  <!-- CGPA Calculator -->
+  <url>
+    <loc>https://iitm-scholar-hub.vercel.app/cgpa-calculator</loc>
+    <lastmod>2023-10-15</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.9</priority>
+  </url>
+  
   <!-- End Term Marks Predictor -->
   <url>
     <loc>https://iitm-scholar-hub.vercel.app/endterm-marks-predictor</loc>
@@ -43,6 +51,14 @@
   <!-- Roadmaps Listing -->
   <url>
     <loc>https://iitm-scholar-hub.vercel.app/roadmaps</loc>
+    <lastmod>2023-10-15</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.9</priority>
+  </url>
+  
+  <!-- Python Cheatsheet -->
+  <url>
+    <loc>https://iitm-scholar-hub.vercel.app/python-cheatsheet</loc>
     <lastmod>2023-10-15</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.9</priority>

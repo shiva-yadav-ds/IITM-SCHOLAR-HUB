@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Menu, X, FileText, Book, Calculator, Home, BookOpen, ChevronDown, LayoutGrid, MessageSquare } from "lucide-react";
+import { Menu, X, FileText, Book, Calculator, Home, BookOpen, ChevronDown, LayoutGrid, MessageSquare, Code2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { motion, AnimatePresence } from "framer-motion";
@@ -13,13 +13,29 @@ const Navbar = () => {
   const location = useLocation();
   const navigate = useNavigate();
 
-  // Reorganized navigation items with dropdowns
+  // Reorganized navigation items with dropdowns for better organization
   const navItems = [
     { name: "Home", path: "/", icon: Home },
-    { name: "Grade Calculator", path: "/grade-calculator", icon: Calculator },
-    { name: "End Term Marks Predictor", path: "/endterm-marks-predictor", icon: Calculator },
-    { name: "Learning Roadmaps", path: "/roadmaps", icon: Book },
-    { name: "Resume Generator", path: "/resume-generator", icon: FileText },
+    {
+      name: "Tools",
+      icon: Calculator,
+      dropdown: true,
+      items: [
+        { name: "Grade Calculator", path: "/grade-calculator", icon: Calculator },
+        { name: "CGPA Calculator", path: "/cgpa-calculator", icon: Calculator },
+        { name: "End Term Marks Predictor", path: "/endterm-marks-predictor", icon: Calculator },
+        { name: "Resume Generator", path: "/resume-generator", icon: FileText },
+      ]
+    },
+    {
+      name: "Resources",
+      icon: BookOpen,
+      dropdown: true,
+      items: [
+        { name: "Learning Roadmaps", path: "/roadmaps", icon: Book },
+        { name: "Python Cheatsheet", path: "/python-cheatsheet", icon: Code2 },
+      ]
+    },
     { name: "AI Assistant", path: "/ai-assistant", icon: MessageSquare },
   ];
 
