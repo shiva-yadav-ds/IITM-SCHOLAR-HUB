@@ -21,8 +21,6 @@ export interface FoundationParams {
   pe2?: number;
   normalBonus?: number;
   extraActivityBonus?: number;
-  sctBonus?: number;
-  mockTestBonus?: number;
   [key: string]: string | number | undefined; // Allow any string key
 }
 
@@ -71,8 +69,6 @@ export function calculateFoundationScores(params: FoundationParams): FoundationS
     quiz2 = 0,
     finalExam = 0,
     extraActivityBonus = 0,
-    sctBonus = 0,
-    mockTestBonus = 0,
     pe1 = 0,
     pe2 = 0
   } = params;
@@ -82,15 +78,14 @@ export function calculateFoundationScores(params: FoundationParams): FoundationS
 
   // For Python, formula is different compared to other courses
   if (subject === 'BSCCS1001') { // Python Programming
+    // T = 0.1*GAA1 + 0.1*GAA2 + 0.1*Qz1 + 0.4*F + 0.25*max(PE1,PE2) + 0.15*min(PE1,PE2)
     baseScore = 0.1 * gaa1 + 0.1 * gaa2 + 0.1 * quiz1 +
       0.4 * finalExam + 0.25 * Math.max(pe1, pe2) + 0.15 * Math.min(pe1, pe2);
 
-    scoreWithOtherBonuses = baseScore;
-    // Add SCT and Mock test bonuses if passing (T >= 40)
-    if (baseScore >= 40) {
-      scoreWithOtherBonuses += Math.min(2, sctBonus);      // SCT bonus (up to 2 marks)
-      scoreWithOtherBonuses += Math.min(2, mockTestBonus); // Mock test bonus (up to 2 marks)
-    }
+    // For Python: scoreWithoutNormalBonus = base score only (no bonuses)
+    // scoreWithNormalBonus will add both auto SCT+Mock (4) and normal (2) = 6 total
+    scoreWithOtherBonuses = baseScore; // Keep as base score (no auto bonuses here)
+    // The +4 SCT+Mock bonus and +2 normal bonus will be added in the final calculation
   }
   // For Statistics 1 and Statistics 2, there's extra activity bonus in addition to normal bonus
   else if (subject === 'BSCCS1002' || subject === 'BSCCS1007') { // Stats 1 or Stats 2
@@ -120,8 +115,10 @@ export function calculateFoundationScores(params: FoundationParams): FoundationS
     scoreWithOtherBonuses = baseScore;
   }
 
-  // Determine if student qualifies for normal bonus (score before normal bonus >= 40)
+  // Determine if student qualifies for bonus (score before bonus >= 40)
   const qualifiesForNormalBonus = scoreWithOtherBonuses >= 40;
+
+  // All courses get +2 bonus when base score >= 40
   const normalBonusApplied = qualifiesForNormalBonus ? 2 : 0;
 
   // Calculate both scores
@@ -214,8 +211,8 @@ export function getSubjectDetails(subject: string): { name: string; code: string
  */
 export function getRequiredFields(subject: string): string[] {
   if (subject === 'BSCCS1001') { // Python
-    // Removed normalBonus - it's now auto-calculated
-    return ['gaa1', 'gaa2', 'quiz1', 'pe1', 'pe2', 'finalExam', 'sctBonus', 'mockTestBonus'];
+    // Removed sctBonus, mockTestBonus - now auto-calculated (4 bonus total)
+    return ['gaa1', 'gaa2', 'quiz1', 'pe1', 'pe2', 'finalExam'];
   } else if (subject === 'BSCCS1002' || subject === 'BSCCS1007') { // Stats 1 or Stats 2
     // Removed normalBonus - it's now auto-calculated
     return ['gaa', 'quiz1', 'quiz2', 'finalExam', 'extraActivityBonus'];
