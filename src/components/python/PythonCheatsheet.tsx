@@ -18,6 +18,183 @@ import {
   ArrowRight
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import React from 'react';
+
+// =============================================================================
+// PYTHON SYNTAX HIGHLIGHTER
+// =============================================================================
+
+const pythonKeywords = [
+  'and', 'as', 'assert', 'async', 'await', 'break', 'class', 'continue',
+  'def', 'del', 'elif', 'else', 'except', 'finally', 'for', 'from',
+  'global', 'if', 'import', 'in', 'is', 'lambda', 'nonlocal', 'not',
+  'or', 'pass', 'raise', 'return', 'try', 'while', 'with', 'yield',
+  'True', 'False', 'None'
+];
+
+const pythonBuiltins = [
+  'print', 'len', 'range', 'str', 'int', 'float', 'list', 'dict', 'set',
+  'tuple', 'bool', 'type', 'input', 'open', 'file', 'abs', 'all', 'any',
+  'bin', 'chr', 'ord', 'dir', 'divmod', 'enumerate', 'eval', 'exec',
+  'filter', 'format', 'frozenset', 'getattr', 'setattr', 'delattr',
+  'globals', 'locals', 'hasattr', 'hash', 'help', 'hex', 'id', 'isinstance',
+  'issubclass', 'iter', 'map', 'max', 'min', 'next', 'object', 'oct',
+  'pow', 'repr', 'reversed', 'round', 'slice', 'sorted', 'sum', 'super',
+  'vars', 'zip', 'callable', 'classmethod', 'staticmethod', 'property',
+  'compile', 'complex', 'memoryview', 'bytearray', 'bytes', 'ascii',
+  'breakpoint', '__import__'
+];
+
+const highlightPythonCode = (code: string): React.ReactNode[] => {
+  const lines = code.split('\n');
+
+  return lines.map((line, lineIndex) => {
+    const tokens: React.ReactNode[] = [];
+    let remaining = line;
+    let tokenIndex = 0;
+
+    while (remaining.length > 0) {
+      let matched = false;
+
+      // Match comments (# ...)
+      const commentMatch = remaining.match(/^(#.*)/);
+      if (commentMatch) {
+        tokens.push(
+          <span key={`${lineIndex}-${tokenIndex++}`} className="text-slate-500 dark:text-slate-400 italic">
+            {commentMatch[1]}
+          </span>
+        );
+        remaining = remaining.slice(commentMatch[1].length);
+        matched = true;
+        continue;
+      }
+
+      // Match triple-quoted strings
+      const tripleStringMatch = remaining.match(/^("""[\s\S]*?"""|'''[\s\S]*?''')/);
+      if (tripleStringMatch) {
+        tokens.push(
+          <span key={`${lineIndex}-${tokenIndex++}`} className="text-amber-500 dark:text-amber-400">
+            {tripleStringMatch[1]}
+          </span>
+        );
+        remaining = remaining.slice(tripleStringMatch[1].length);
+        matched = true;
+        continue;
+      }
+
+      // Match f-strings
+      const fstringMatch = remaining.match(/^(f["'][^"']*["'])/);
+      if (fstringMatch) {
+        tokens.push(
+          <span key={`${lineIndex}-${tokenIndex++}`} className="text-amber-500 dark:text-amber-400">
+            {fstringMatch[1]}
+          </span>
+        );
+        remaining = remaining.slice(fstringMatch[1].length);
+        matched = true;
+        continue;
+      }
+
+      // Match strings
+      const stringMatch = remaining.match(/^("[^"\\]*(?:\\.[^"\\]*)*"|'[^'\\]*(?:\\.[^'\\]*)*')/);
+      if (stringMatch) {
+        tokens.push(
+          <span key={`${lineIndex}-${tokenIndex++}`} className="text-amber-500 dark:text-amber-400">
+            {stringMatch[1]}
+          </span>
+        );
+        remaining = remaining.slice(stringMatch[1].length);
+        matched = true;
+        continue;
+      }
+
+      // Match numbers (including floats, negative, scientific notation)
+      const numberMatch = remaining.match(/^(-?\d+\.?\d*(?:[eE][+-]?\d+)?)/);
+      if (numberMatch && !/^[a-zA-Z_]/.test(remaining.charAt(numberMatch[1].length))) {
+        tokens.push(
+          <span key={`${lineIndex}-${tokenIndex++}`} className="text-cyan-400 dark:text-cyan-300">
+            {numberMatch[1]}
+          </span>
+        );
+        remaining = remaining.slice(numberMatch[1].length);
+        matched = true;
+        continue;
+      }
+
+      // Match identifiers (keywords, builtins, variables)
+      const identMatch = remaining.match(/^([a-zA-Z_][a-zA-Z0-9_]*)/);
+      if (identMatch) {
+        const word = identMatch[1];
+        let className = "text-gray-800 dark:text-gray-200"; // default for variables
+
+        if (pythonKeywords.includes(word)) {
+          className = "text-purple-600 dark:text-purple-400 font-semibold";
+        } else if (pythonBuiltins.includes(word)) {
+          className = "text-blue-600 dark:text-blue-400";
+        }
+
+        tokens.push(
+          <span key={`${lineIndex}-${tokenIndex++}`} className={className}>
+            {word}
+          </span>
+        );
+        remaining = remaining.slice(word.length);
+        matched = true;
+        continue;
+      }
+
+      // Match operators and punctuation
+      const operatorMatch = remaining.match(/^([+\-*/%=<>!&|^~@:.,;()\[\]{}]+)/);
+      if (operatorMatch) {
+        tokens.push(
+          <span key={`${lineIndex}-${tokenIndex++}`} className="text-pink-500 dark:text-pink-400">
+            {operatorMatch[1]}
+          </span>
+        );
+        remaining = remaining.slice(operatorMatch[1].length);
+        matched = true;
+        continue;
+      }
+
+      // Match whitespace
+      const spaceMatch = remaining.match(/^(\s+)/);
+      if (spaceMatch) {
+        tokens.push(
+          <span key={`${lineIndex}-${tokenIndex++}`}>
+            {spaceMatch[1]}
+          </span>
+        );
+        remaining = remaining.slice(spaceMatch[1].length);
+        matched = true;
+        continue;
+      }
+
+      // Fallback: single character
+      if (!matched) {
+        tokens.push(
+          <span key={`${lineIndex}-${tokenIndex++}`} className="text-gray-800 dark:text-gray-200">
+            {remaining[0]}
+          </span>
+        );
+        remaining = remaining.slice(1);
+      }
+    }
+
+    return (
+      <React.Fragment key={lineIndex}>
+        {tokens}
+        {lineIndex < lines.length - 1 && '\n'}
+      </React.Fragment>
+    );
+  });
+};
+
+// Syntax highlighted code block component
+const PythonCodeBlock = ({ code }: { code: string }) => (
+  <pre className="mt-3 p-4 bg-gray-100 dark:bg-gray-900/80 border border-gray-300 dark:border-gray-700 rounded-lg text-sm font-mono overflow-x-auto leading-relaxed">
+    <code>{highlightPythonCode(code)}</code>
+  </pre>
+);
 
 // =============================================================================
 // DATA: All Python Functions
@@ -945,7 +1122,7 @@ print(result)  # 'Hello World'` },
 total = 1234.567
 # Round then divide
 whole, frac = divmod(round(total, 2), 1)
-print(f"\\${int(whole)}.{int(frac*100):02d}")
+print(f"\\$\${int(whole)}.\${int(frac*100):02d}")
 
 # Time calculation
 mins, secs = divmod(round(125.7), 60)
@@ -1069,9 +1246,7 @@ const FunctionItem = ({ func, isOpen, onToggle }: {
           {func.description}
         </p>
         {func.example && (
-          <pre className="mt-3 p-3 bg-black/50 rounded-lg text-sm text-green-400 font-mono overflow-x-auto">
-            {func.example}
-          </pre>
+          <PythonCodeBlock code={func.example} />
         )}
       </div>
     )}
@@ -1203,32 +1378,29 @@ export default function PythonCheatsheet() {
     <div className="min-h-screen bg-[#020817]">
       {/* Header */}
       <div className="bg-gradient-to-br from-gray-900 via-gray-900 to-blue-900/30 border-b border-gray-800">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 py-6 sm:py-10">
-          <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-6">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 py-3 sm:py-5">
+          <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
             {/* Title Section */}
             <div className="flex-1">
-              <div className="flex items-center gap-3 mb-3">
-                <div className="p-2 bg-gradient-to-br from-green-500 to-blue-500 rounded-lg">
-                  <Code2 className="w-6 h-6 text-white" />
+              <div className="flex items-center gap-3 mb-2">
+                <div className="p-1.5 bg-gradient-to-br from-green-500 to-blue-500 rounded-lg">
+                  <Code2 className="w-5 h-5 text-white" />
                 </div>
                 <div>
-                  <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-white">
+                  <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-white">
                     Python Reference Guide
                   </h1>
-                  <p className="text-blue-400 text-sm">IITM Exam Prep – Complete Edition</p>
+                  <p className="text-blue-400 text-xs">IITM Exam Prep – Complete Edition</p>
                 </div>
               </div>
-              <p className="text-gray-400 text-sm sm:text-base max-w-2xl mb-4">
-                This comprehensive document merges all essential Python built-ins, string methods, list operations, and advanced functions into one detailed master reference. Everything you need for IITM exams in one place.
-              </p>
-              <div className="flex flex-wrap gap-3">
-                <Badge className="bg-blue-500/20 text-blue-300 border-blue-500/30 px-3 py-1">
-                  <Code2 className="w-4 h-4 mr-1" />
-                  85+ Functions Covered
+              <div className="flex flex-wrap gap-2">
+                <Badge className="bg-blue-500/20 text-blue-300 border-blue-500/30 px-2 py-0.5 text-xs">
+                  <Code2 className="w-3 h-3 mr-1" />
+                  85+ Functions
                 </Badge>
-                <Badge className="bg-green-500/20 text-green-300 border-green-500/30 px-3 py-1">
-                  <Target className="w-4 h-4 mr-1" />
-                  Exam-Focused (IITM BS DS)
+                <Badge className="bg-green-500/20 text-green-300 border-green-500/30 px-2 py-0.5 text-xs">
+                  <Target className="w-3 h-3 mr-1" />
+                  IITM BS DS
                 </Badge>
               </div>
             </div>
