@@ -101,8 +101,8 @@ const fieldLabels: Record<string, string> = {
   // App Dev 1 fields
   gla: "Best 3 of 6 Lab Assignments Score",
   // Java fields
-  pe1: "Programming Exam 1 Score",
-  pe2: "Programming Exam 2 Score",
+  pe1: "OPPE-1 (Online Proctored Programming Exam 1)",
+  pe2: "OPPE-2 (Online Proctored Programming Exam 2)",
   // System Commands fields
   bpta: "Biweekly Programming Test Average",
   ope: "Online Proctored Exam Score",
@@ -603,7 +603,7 @@ export default function GradeCalculator() {
                             Without Bonus: {scoreBreakdown.scoreWithoutNormalBonus.toFixed(0)}%
                           </div>
                           <div className="font-medium text-green-400 flex items-center justify-center gap-1">
-                            <span>With Bonus (+2): {scoreBreakdown.scoreWithNormalBonus.toFixed(0)}%</span>
+                            <span>With Bonus (+{(scoreBreakdown.scoreWithNormalBonus - scoreBreakdown.scoreWithoutNormalBonus).toFixed(0)}): {scoreBreakdown.scoreWithNormalBonus.toFixed(0)}%</span>
                             {scoreBreakdown.qualifiesForNormalBonus && (
                               <span className="inline-flex items-center px-1.5 py-0.5 rounded text-xs bg-green-500/20 text-green-400">
                                 <Info className="w-3 h-3 mr-0.5" />
