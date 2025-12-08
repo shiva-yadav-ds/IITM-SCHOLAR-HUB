@@ -1191,6 +1191,292 @@ const patternConditions = [
   { condition: 'i >= j', desc: 'Lower triangle' },
 ];
 
+// Pattern examples with output and code
+const patternExamples = [
+  {
+    name: '⭐ Right Triangle',
+    output: `*
+* *
+* * *
+* * * *
+* * * * *`,
+    code: `n = 5
+for i in range(1, n+1):
+    print("* " * i)`
+  },
+  {
+    name: '⭐ Inverted Right Triangle',
+    output: `* * * * *
+* * * *
+* * *
+* *
+*`,
+    code: `n = 5
+for i in range(n, 0, -1):
+    print("* " * i)`
+  },
+  {
+    name: '🔺 Pyramid',
+    output: `    *
+   * *
+  * * *
+ * * * *
+* * * * *`,
+    code: `n = 5
+for i in range(1, n+1):
+    print(" " * (n-i) + "* " * i)`
+  },
+  {
+    name: '🔻 Inverted Pyramid',
+    output: `* * * * *
+ * * * *
+  * * *
+   * *
+    *`,
+    code: `n = 5
+for i in range(n, 0, -1):
+    print(" " * (n-i) + "* " * i)`
+  },
+  {
+    name: '💎 Diamond',
+    output: `    *
+   * *
+  * * *
+ * * * *
+* * * * *
+ * * * *
+  * * *
+   * *
+    *`,
+    code: `n = 5
+# Upper half
+for i in range(1, n+1):
+    print(" " * (n-i) + "* " * i)
+# Lower half
+for i in range(n-1, 0, -1):
+    print(" " * (n-i) + "* " * i)`
+  },
+  {
+    name: '✌️ V Pattern',
+    output: `*       *
+ *     *
+  *   *
+   * *
+    *`,
+    code: `n = 5
+for i in range(n):
+    for j in range(2*n - 1):
+        if j == i or j == 2*n - 2 - i:
+            print("*", end="")
+        else:
+            print(" ", end="")
+    print()`
+  },
+  {
+    name: '🔼 Inverted V (A Pattern)',
+    output: `    *
+   * *
+  *   *
+ *     *
+*       *`,
+    code: `n = 5
+for i in range(n):
+    for j in range(2*n - 1):
+        if j == n - 1 - i or j == n - 1 + i:
+            print("*", end="")
+        else:
+            print(" ", end="")
+    print()`
+  },
+  {
+    name: '❌ X Pattern',
+    output: `*       *
+ *     *
+  *   *
+   * *
+    *
+   * *
+  *   *
+ *     *
+*       *`,
+    code: `n = 5
+for i in range(2*n - 1):
+    for j in range(2*n - 1):
+        # Main diagonal or anti-diagonal
+        if j == i or j == 2*n - 2 - i:
+            print("*", end="")
+        else:
+            print(" ", end="")
+    print()`
+  },
+  {
+    name: '⬜ Hollow Square',
+    output: `* * * * *
+*       *
+*       *
+*       *
+* * * * *`,
+    code: `n = 5
+for i in range(n):
+    for j in range(n):
+        if i == 0 or i == n-1 or j == 0 or j == n-1:
+            print("*", end=" ")
+        else:
+            print(" ", end=" ")
+    print()`
+  },
+  {
+    name: '🔢 Number Triangle',
+    output: `1
+1 2
+1 2 3
+1 2 3 4
+1 2 3 4 5`,
+    code: `n = 5
+for i in range(1, n+1):
+    for j in range(1, i+1):
+        print(j, end=" ")
+    print()`
+  },
+  {
+    name: '🔤 Alphabet Triangle',
+    output: `A
+A B
+A B C
+A B C D
+A B C D E`,
+    code: `n = 5
+for i in range(1, n+1):
+    for j in range(i):
+        print(chr(65 + j), end=" ")
+    print()`
+  },
+  {
+    name: '🦋 Butterfly Pattern',
+    output: `*       *
+* *   * *
+* * * * *
+* *   * *
+*       *`,
+    code: `n = 3
+# Upper half
+for i in range(1, n+1):
+    print("* " * i + "  " * (n-i) * 2 + "* " * i)
+# Lower half
+for i in range(n, 0, -1):
+    print("* " * i + "  " * (n-i) * 2 + "* " * i)`
+  },
+  {
+    name: '⏩ Arrow Pattern',
+    output: `    *
+   * *
+  * * *
+ * * * *
+* * * * *
+ * * * *
+  * * *
+   * *
+    *`,
+    code: `n = 5
+# Upper part
+for i in range(1, n+1):
+    print(" " * (n-i) + "* " * i)
+# Lower part
+for i in range(n-1, 0, -1):
+    print(" " * (n-i) + "* " * i)`
+  },
+  {
+    name: '🔳 Plus Pattern',
+    output: `   
+      *
+      *
+      *
+* * * * * * *
+      *
+      *
+      *`,
+    code: `n = 7
+mid = n // 2
+for i in range(n):
+    for j in range(n):
+        if i == mid or j == mid:
+            print("*", end=" ")
+        else:
+            print(" ", end=" ")
+    print()`
+  },
+  {
+    name: '🏆 Cup / U Pattern',
+    output: `       _
+     _| |_
+   _|     |_
+ _|         |_
+|_____________|`,
+    code: `n = int(input())
+for i in range(n+1):
+    if i == 0:
+        # Top line - single underscore
+        spaces = " " * ((2*n) - 1)
+        print(spaces + "_")
+    elif i == n:
+        # Bottom line - full underscore row
+        underscores = "_" * ((4*n) - 3)
+        print("|" + underscores + "|")
+    else:
+        # Middle rows
+        initial_spaces = " " * ((2*n) - (2*i) - 1)
+        mid_spaces = " " * ((4*i) - 3)
+        print(initial_spaces + "_|" + mid_spaces + "|_")`
+  },
+  {
+    name: '⏳ Hourglass Pattern',
+    output: `* * * * *
+ * * * *
+  * * *
+   * *
+    *
+   * *
+  * * *
+ * * * *
+* * * * *`,
+    code: `n = 5
+# Upper half (inverted pyramid)
+for i in range(n, 0, -1):
+    print(" " * (n-i) + "* " * i)
+# Lower half (pyramid)
+for i in range(2, n+1):
+    print(" " * (n-i) + "* " * i)`
+  },
+  {
+    name: '🔷 Rhombus / Parallelogram',
+    output: `    * * * * *
+   * * * * *
+  * * * * *
+ * * * * *
+* * * * *`,
+    code: `n = 5
+for i in range(n):
+    print(" " * (n - i - 1) + "* " * n)`
+  },
+  {
+    name: '🌲 Christmas Tree',
+    output: `    *
+   ***
+  *****
+ *******
+*********
+    |
+    |`,
+    code: `n = 5
+# Tree
+for i in range(n):
+    print(" " * (n-i-1) + "*" * (2*i+1))
+# Trunk
+for i in range(2):
+    print(" " * (n-1) + "|")`
+  },
+];
+
 // Exam tips
 const examTips = [
   { icon: '✅', title: 'Practice Core Functions', desc: 'Focus on len(), sum(), max(), min(), sorted(), enumerate(), and zip() - they appear in almost every exam.' },
@@ -1552,11 +1838,11 @@ export default function PythonCheatsheet() {
                 id="patterns"
                 icon={<Target className="w-5 h-5" />}
                 title="🎯 Pattern Printing Mastery"
-                subtitle="Master the universal pattern template"
+                subtitle="Master the universal pattern template with 14+ examples"
                 isOpen={openSections.has('patterns')}
                 onToggle={() => toggleSection('patterns')}
               >
-                <Card className="bg-gray-800/50 border-gray-700">
+                <Card className="bg-gray-800/50 border-gray-700 mb-4">
                   <CardContent className="p-4">
                     <p className="text-gray-300 mb-4">
                       Pattern printing looks tough, but 90% of patterns follow one simple template. Once you master it, every pattern becomes a remix with just spacing and symbol changes.
@@ -1572,7 +1858,7 @@ for i in range(n):          # Outer loop → rows
     print()                 # move to next line`}
                     </pre>
                     <h4 className="font-semibold text-white mb-3">Common Pattern Conditions</h4>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-4">
                       {patternConditions.map((p, idx) => (
                         <div key={idx} className="bg-gray-900/50 p-3 rounded-lg">
                           <code className="text-blue-400 font-mono">{p.condition}</code>
@@ -1582,6 +1868,32 @@ for i in range(n):          # Outer loop → rows
                     </div>
                   </CardContent>
                 </Card>
+
+                {/* Pattern Examples Grid */}
+                <h4 className="font-semibold text-white mb-3 text-lg">📚 Pattern Examples with Solutions</h4>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {patternExamples.map((pattern, idx) => (
+                    <Card key={idx} className="bg-gray-800/50 border-gray-700 hover:border-blue-500/50 transition-colors">
+                      <CardContent className="p-4">
+                        <h5 className="font-semibold text-blue-400 mb-3 text-base">{pattern.name}</h5>
+
+                        {/* Pattern Output Preview */}
+                        <div className="mb-3">
+                          <span className="text-xs text-gray-500 uppercase tracking-wide">Output:</span>
+                          <pre className="mt-1 p-3 bg-black/70 rounded-lg text-xs text-yellow-300 font-mono overflow-x-auto whitespace-pre leading-relaxed">
+                            {pattern.output}
+                          </pre>
+                        </div>
+
+                        {/* Pattern Code */}
+                        <div>
+                          <span className="text-xs text-gray-500 uppercase tracking-wide">Python Code:</span>
+                          <PythonCodeBlock code={pattern.code} />
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
               </Section>
             )}
 

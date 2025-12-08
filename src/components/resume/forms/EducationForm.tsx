@@ -28,6 +28,13 @@ export const EducationForm: React.FC<EducationFormProps> = ({ data, updateData }
   const [courses, setCourses] = useState<string[]>([]);
   const [isEditing, setIsEditing] = useState<number | null>(null);
 
+  // Sync local state with prop when data is restored from localStorage
+  React.useEffect(() => {
+    if (JSON.stringify(data) !== JSON.stringify(educations)) {
+      setEducations(data);
+    }
+  }, [data]);
+
   const form = useForm<z.infer<typeof educationSchema>>({
     resolver: zodResolver(educationSchema),
     defaultValues: {
@@ -101,7 +108,7 @@ export const EducationForm: React.FC<EducationFormProps> = ({ data, updateData }
   return (
     <div className="space-y-6">
       <h2 className="text-2xl font-bold">Education</h2>
-      
+
       {/* Display added educations */}
       {educations.length > 0 && (
         <div className="space-y-4 mb-6">
@@ -147,14 +154,14 @@ export const EducationForm: React.FC<EducationFormProps> = ({ data, updateData }
           ))}
         </div>
       )}
-      
+
       {/* Form to add new education */}
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
           <h3 className="text-lg font-medium">
             {isEditing !== null ? "Edit Education" : "Add Education"}
           </h3>
-          
+
           <FormField
             control={form.control}
             name="school"
@@ -168,7 +175,7 @@ export const EducationForm: React.FC<EducationFormProps> = ({ data, updateData }
               </FormItem>
             )}
           />
-          
+
           <FormField
             control={form.control}
             name="degree"
@@ -182,7 +189,7 @@ export const EducationForm: React.FC<EducationFormProps> = ({ data, updateData }
               </FormItem>
             )}
           />
-          
+
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <FormField
               control={form.control}
@@ -197,7 +204,7 @@ export const EducationForm: React.FC<EducationFormProps> = ({ data, updateData }
                 </FormItem>
               )}
             />
-            
+
             <FormField
               control={form.control}
               name="gpa"
@@ -212,7 +219,7 @@ export const EducationForm: React.FC<EducationFormProps> = ({ data, updateData }
               )}
             />
           </div>
-          
+
           <div className="space-y-2">
             <FormLabel>Relevant Courses</FormLabel>
             <div className="flex gap-2">
@@ -231,7 +238,7 @@ export const EducationForm: React.FC<EducationFormProps> = ({ data, updateData }
                 <Plus className="h-4 w-4" />
               </Button>
             </div>
-            
+
             <div className="flex flex-wrap gap-2 mt-2">
               {courses.map((course, i) => (
                 <div
@@ -247,7 +254,7 @@ export const EducationForm: React.FC<EducationFormProps> = ({ data, updateData }
               ))}
             </div>
           </div>
-          
+
           <div className="flex justify-end gap-2 mt-6">
             {isEditing !== null && (
               <Button

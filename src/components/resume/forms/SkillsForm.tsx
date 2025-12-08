@@ -18,6 +18,13 @@ export const SkillsForm: React.FC<SkillsFormProps> = ({ data, updateData }) => {
   const [newSkill, setNewSkill] = useState('');
   const [skillType, setSkillType] = useState<'technical' | 'soft'>('technical');
 
+  // Sync local state with prop when data is restored from localStorage
+  React.useEffect(() => {
+    if (JSON.stringify(data) !== JSON.stringify(skills)) {
+      setSkills(data);
+    }
+  }, [data]);
+
   const addSkill = () => {
     if (newSkill.trim()) {
       const skill = {
@@ -44,7 +51,7 @@ export const SkillsForm: React.FC<SkillsFormProps> = ({ data, updateData }) => {
   return (
     <div className="space-y-6">
       <h2 className="text-2xl font-bold">Skills</h2>
-      
+
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
         {/* Technical Skills */}
         <div className="space-y-4">
@@ -67,7 +74,7 @@ export const SkillsForm: React.FC<SkillsFormProps> = ({ data, updateData }) => {
             )}
           </div>
         </div>
-        
+
         {/* Soft Skills */}
         <div className="space-y-4">
           <h3 className="text-xl font-semibold">Soft Skills</h3>
@@ -90,13 +97,13 @@ export const SkillsForm: React.FC<SkillsFormProps> = ({ data, updateData }) => {
           </div>
         </div>
       </div>
-      
+
       {/* Add new skill */}
       <div className="mt-8 border-t pt-6">
         <h3 className="text-lg font-medium mb-4">Add New Skill</h3>
-        
+
         <div className="space-y-4">
-          <RadioGroup 
+          <RadioGroup
             defaultValue="technical"
             className="flex space-x-4"
             value={skillType}
@@ -111,7 +118,7 @@ export const SkillsForm: React.FC<SkillsFormProps> = ({ data, updateData }) => {
               <Label htmlFor="soft">Soft Skill</Label>
             </div>
           </RadioGroup>
-          
+
           <div className="flex gap-2">
             <Input
               value={newSkill}

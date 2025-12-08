@@ -28,6 +28,11 @@ export const PersonalForm: React.FC<PersonalFormProps> = ({ data, updateData }) 
     defaultValues: data,
   });
 
+  // Sync form with prop when data is restored from localStorage
+  React.useEffect(() => {
+    form.reset(data);
+  }, [data]);
+
   // Update parent component's state when form values change
   React.useEffect(() => {
     const subscription = form.watch((value) => {
@@ -68,7 +73,7 @@ export const PersonalForm: React.FC<PersonalFormProps> = ({ data, updateData }) 
             )}
           />
         </div>
-        
+
         <FormField
           control={form.control}
           name="email"
@@ -82,7 +87,7 @@ export const PersonalForm: React.FC<PersonalFormProps> = ({ data, updateData }) 
             </FormItem>
           )}
         />
-        
+
         <FormField
           control={form.control}
           name="phone"
@@ -96,7 +101,7 @@ export const PersonalForm: React.FC<PersonalFormProps> = ({ data, updateData }) 
             </FormItem>
           )}
         />
-        
+
         <FormField
           control={form.control}
           name="address"
@@ -110,7 +115,7 @@ export const PersonalForm: React.FC<PersonalFormProps> = ({ data, updateData }) 
             </FormItem>
           )}
         />
-        
+
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <FormField
             control={form.control}
@@ -125,7 +130,7 @@ export const PersonalForm: React.FC<PersonalFormProps> = ({ data, updateData }) 
               </FormItem>
             )}
           />
-          
+
           <FormField
             control={form.control}
             name="github"

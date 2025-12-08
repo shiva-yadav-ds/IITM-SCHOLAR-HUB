@@ -1,8 +1,9 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { CheckCircle2, FileText } from "lucide-react";
+import { CheckCircle2, FileText, Trash2 } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import MainLayout from "@/components/MainLayout";
 import PageHeader from "@/components/PageHeader";
 import { ResumeForm } from "@/components/resume/ResumeForm";
@@ -11,6 +12,9 @@ import { ResumePreview } from "@/components/resume/ResumePreview";
 import { ResumeData, defaultResumeData } from "@/types/resume";
 import { cn } from "@/lib/utils";
 import { Helmet } from 'react-helmet';
+import { useToast } from "@/hooks/use-toast";
+
+const STORAGE_KEY = 'resume_generator_draft';
 
 const steps = [
   { id: "personal", label: "Personal Info" },
@@ -23,12 +27,72 @@ const steps = [
   { id: "preview", label: "Preview & Download" },
 ];
 
+// Helper function to load data from localStorage
+const loadFromStorage = () => {
+  try {
+    const saved = localStorage.getItem(STORAGE_KEY);
+    if (saved) {
+      return JSON.parse(saved);
+    }
+  } catch (e) {
+    console.error('Failed to load resume data from localStorage:', e);
+  }
+  return null;
+};
+
 const ResumeGenerator = () => {
-  const [currentStep, setCurrentStep] = useState(0);
-  const [resumeData, setResumeData] = useState<ResumeData>(defaultResumeData);
-  const [selectedTemplate, setSelectedTemplate] = useState("professional");
-  const [completedSteps, setCompletedSteps] = useState<number[]>([]);
-  
+  const { toast } = useToast();
+
+  // Initialize state from localStorage if available
+  const savedData = loadFromStorage();
+
+  const [currentStep, setCurrentStep] = useState(savedData?.currentStep ?? 0);
+  const [resumeData, setResumeData] = useState<ResumeData>(savedData?.resumeData ?? defaultResumeData);
+  const [selectedTemplate, setSelectedTemplate] = useState(savedData?.selectedTemplate ?? "professional");
+  const [completedSteps, setCompletedSteps] = useState<number[]>(savedData?.completedSteps ?? []);
+  const [hasShownRestoreToast, setHasShownRestoreToast] = useState(false);
+
+  // Show toast if data was restored from localStorage
+  useEffect(() => {
+    if (savedData && !hasShownRestoreToast && savedData.resumeData?.personal?.firstName) {
+      toast({
+        title: "📝 Draft Restored!",
+        description: `Welcome back! Your resume draft for "${savedData.resumeData.personal.firstName}" has been restored.`,
+      });
+      setHasShownRestoreToast(true);
+    }
+  }, [savedData, hasShownRestoreToast, toast]);
+
+  // Auto-save to localStorage whenever data changes
+  useEffect(() => {
+    const dataToSave = {
+      resumeData,
+      currentStep,
+      selectedTemplate,
+      completedSteps,
+      lastUpdated: new Date().toISOString()
+    };
+
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(dataToSave));
+    } catch (e) {
+      console.error('Failed to save resume data to localStorage:', e);
+    }
+  }, [resumeData, currentStep, selectedTemplate, completedSteps]);
+
+  // Function to clear the draft
+  const clearDraft = () => {
+    localStorage.removeItem(STORAGE_KEY);
+    setResumeData(defaultResumeData);
+    setCurrentStep(0);
+    setSelectedTemplate("professional");
+    setCompletedSteps([]);
+    toast({
+      title: "Draft Cleared",
+      description: "Your resume draft has been cleared. You can start fresh!",
+    });
+  };
+
   const nextStep = () => {
     if (currentStep < steps.length - 1) {
       // Mark current step as completed
@@ -36,16 +100,16 @@ const ResumeGenerator = () => {
         setCompletedSteps([...completedSteps, currentStep]);
       }
       setCurrentStep(currentStep + 1);
-      
+
       // Scroll to top when moving to next step
       window.scrollTo({ top: 0, behavior: 'smooth' });
     }
   };
-  
+
   const prevStep = () => {
     if (currentStep > 0) {
       setCurrentStep(currentStep - 1);
-      
+
       // Scroll to top when moving to previous step
       window.scrollTo({ top: 0, behavior: 'smooth' });
     }
@@ -58,14 +122,14 @@ const ResumeGenerator = () => {
       window.scrollTo({ top: 0, behavior: 'smooth' });
     }
   };
-  
+
   const updateResumeData = (sectionKey: keyof ResumeData, data: any) => {
     setResumeData(prev => ({
       ...prev,
       [sectionKey]: data
     }));
   };
-  
+
   return (
     <MainLayout>
       <Helmet>
@@ -86,31 +150,44 @@ const ResumeGenerator = () => {
         <meta name="twitter:image" content="https://iitm-scholar-hub.vercel.app/og-image.svg" />
       </Helmet>
       <div className="container max-w-7xl mx-auto px-4 py-8">
-        <PageHeader 
-          title="Resume Generator" 
+        <PageHeader
+          title="Resume Generator"
           description="Create a professional resume tailored for students to highlight your academic achievements"
-          icon={FileText} 
+          icon={FileText}
         />
 
-        
+        {/* Clear Draft Button - only show if there's saved data */}
+        {savedData && resumeData.personal.firstName && (
+          <div className="flex justify-end mb-4">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={clearDraft}
+              className="text-red-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-950/20"
+            >
+              <Trash2 className="w-4 h-4 mr-2" />
+              Clear Draft & Start Fresh
+            </Button>
+          </div>
+        )}
         {/* Improved Progress indicator */}
         <div className="w-full mb-12 mt-8 px-4">
           <div className="relative flex items-center justify-between">
             {/* Progress bar */}
             <div className="absolute left-0 top-1/2 h-1 bg-gray-200 dark:bg-gray-700 transform -translate-y-1/2 w-full rounded-full"></div>
-            <div 
+            <div
               className="absolute left-0 top-1/2 h-1 bg-blue-600 dark:bg-blue-500 transform -translate-y-1/2 rounded-full transition-all duration-300"
               style={{ width: `${(currentStep / (steps.length - 1)) * 100}%` }}
             ></div>
-            
+
             {/* Step circles */}
             {steps.map((step, index) => {
               const isCompleted = completedSteps.includes(index);
               const isCurrent = currentStep === index;
               const isActive = index <= currentStep;
-              
+
               return (
-                <div 
+                <div
                   key={step.id}
                   className={cn(
                     "relative flex flex-col items-center group",
@@ -120,22 +197,22 @@ const ResumeGenerator = () => {
                 >
                   <div className={cn(
                     "w-10 h-10 rounded-full flex items-center justify-center border-2 transition-all duration-200 shadow-md z-10",
-                    isCompleted ? "bg-green-500 border-green-600 text-white" : 
-                    isCurrent ? "bg-blue-600 border-blue-700 text-white" :
-                    isActive ? "bg-white dark:bg-gray-800 border-blue-500 text-blue-600 dark:text-blue-400" :
-                    "bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-600 text-gray-400"
+                    isCompleted ? "bg-green-500 border-green-600 text-white" :
+                      isCurrent ? "bg-blue-600 border-blue-700 text-white" :
+                        isActive ? "bg-white dark:bg-gray-800 border-blue-500 text-blue-600 dark:text-blue-400" :
+                          "bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-600 text-gray-400"
                   )}>
                     {isCompleted ? <CheckCircle2 className="w-5 h-5" /> : index + 1}
                   </div>
-                  
+
                   {/* Label */}
                   <span className={cn(
                     "text-xs font-medium mt-2 absolute top-full whitespace-nowrap -translate-x-1/2 left-1/2 transform",
                     "opacity-0 group-hover:opacity-100 transition-opacity",
                     isCompleted ? "text-green-600 dark:text-green-400" :
-                    isCurrent ? "text-blue-600 dark:text-blue-400" :
-                    isActive ? "text-gray-700 dark:text-gray-300" :
-                    "text-gray-400 dark:text-gray-500"
+                      isCurrent ? "text-blue-600 dark:text-blue-400" :
+                        isActive ? "text-gray-700 dark:text-gray-300" :
+                          "text-gray-400 dark:text-gray-500"
                   )}>
                     {step.label}
                   </span>
@@ -144,35 +221,35 @@ const ResumeGenerator = () => {
             })}
           </div>
         </div>
-        
+
         {/* Current step indicator - mobile friendly version */}
         <div className="mb-6 text-center md:hidden">
           <span className="text-sm text-gray-500 dark:text-gray-400">
-            Step {currentStep + 1} of {steps.length}: 
+            Step {currentStep + 1} of {steps.length}:
           </span>
           <span className="ml-2 font-semibold text-blue-600 dark:text-blue-400">
             {steps[currentStep].label}
           </span>
         </div>
-        
+
         {/* Step content */}
         <div className="bg-white dark:bg-gray-800 shadow-md rounded-lg p-6 mb-8">
           {currentStep < 6 ? (
-            <ResumeForm 
-              step={steps[currentStep].id as keyof ResumeData} 
+            <ResumeForm
+              step={steps[currentStep].id as keyof ResumeData}
               data={resumeData}
               updateData={updateResumeData}
               onNext={nextStep}
               onPrev={prevStep}
             />
           ) : currentStep === 6 ? (
-            <TemplateSelector 
+            <TemplateSelector
               selectedTemplate={selectedTemplate}
               onSelectTemplate={setSelectedTemplate}
               data={resumeData}
             />
           ) : (
-            <ResumePreview 
+            <ResumePreview
               template={selectedTemplate}
               resumeData={resumeData}
               onPrev={prevStep}

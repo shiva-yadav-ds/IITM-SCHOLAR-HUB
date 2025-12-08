@@ -17,14 +17,25 @@ export const AdditionalInfoForm: React.FC<AdditionalInfoFormProps> = ({ data, up
   const [additionalInfo, setAdditionalInfo] = useState<AdditionalInfo>(data);
   const [hobbyInput, setHobbyInput] = useState("");
   const [languageInput, setLanguageInput] = useState("");
-  
+
   const form = useForm({
     defaultValues: {
       summary: data.summary || '',
       references: data.references || ''
     }
   });
-  
+
+  // Sync local state with prop when data is restored from localStorage
+  React.useEffect(() => {
+    if (JSON.stringify(data) !== JSON.stringify(additionalInfo)) {
+      setAdditionalInfo(data);
+      form.reset({
+        summary: data.summary || '',
+        references: data.references || ''
+      });
+    }
+  }, [data]);
+
   React.useEffect(() => {
     const subscription = form.watch((value) => {
       updateData({
@@ -35,7 +46,7 @@ export const AdditionalInfoForm: React.FC<AdditionalInfoFormProps> = ({ data, up
     });
     return () => subscription.unsubscribe();
   }, [form.watch, additionalInfo, updateData]);
-  
+
   const addHobby = () => {
     if (hobbyInput.trim()) {
       const updated = {
@@ -47,7 +58,7 @@ export const AdditionalInfoForm: React.FC<AdditionalInfoFormProps> = ({ data, up
       setHobbyInput('');
     }
   };
-  
+
   const removeHobby = (index: number) => {
     const updated = {
       ...additionalInfo,
@@ -56,7 +67,7 @@ export const AdditionalInfoForm: React.FC<AdditionalInfoFormProps> = ({ data, up
     setAdditionalInfo(updated);
     updateData(updated);
   };
-  
+
   const addLanguage = () => {
     if (languageInput.trim()) {
       const updated = {
@@ -68,7 +79,7 @@ export const AdditionalInfoForm: React.FC<AdditionalInfoFormProps> = ({ data, up
       setLanguageInput('');
     }
   };
-  
+
   const removeLanguage = (index: number) => {
     const updated = {
       ...additionalInfo,
@@ -81,7 +92,7 @@ export const AdditionalInfoForm: React.FC<AdditionalInfoFormProps> = ({ data, up
   return (
     <div className="space-y-6">
       <h2 className="text-2xl font-bold">Additional Information</h2>
-      
+
       <Form {...form}>
         <form className="space-y-6">
           <FormField
@@ -91,7 +102,7 @@ export const AdditionalInfoForm: React.FC<AdditionalInfoFormProps> = ({ data, up
               <FormItem>
                 <FormLabel>Professional Summary</FormLabel>
                 <FormControl>
-                  <Textarea 
+                  <Textarea
                     placeholder="A brief summary about yourself and your professional goals"
                     className="min-h-[100px] rounded-md"
                     {...field}
@@ -100,7 +111,7 @@ export const AdditionalInfoForm: React.FC<AdditionalInfoFormProps> = ({ data, up
               </FormItem>
             )}
           />
-          
+
           <div className="space-y-4">
             <h3 className="text-lg font-medium">Hobbies & Interests</h3>
             <div className="flex gap-2">
@@ -119,7 +130,7 @@ export const AdditionalInfoForm: React.FC<AdditionalInfoFormProps> = ({ data, up
                 <Plus className="h-4 w-4" />
               </Button>
             </div>
-            
+
             <div className="flex flex-wrap gap-2">
               {additionalInfo.hobbies.map((hobby, index) => (
                 <div
@@ -135,7 +146,7 @@ export const AdditionalInfoForm: React.FC<AdditionalInfoFormProps> = ({ data, up
               ))}
             </div>
           </div>
-          
+
           <div className="space-y-4">
             <h3 className="text-lg font-medium">Languages Known</h3>
             <div className="flex gap-2">
@@ -154,7 +165,7 @@ export const AdditionalInfoForm: React.FC<AdditionalInfoFormProps> = ({ data, up
                 <Plus className="h-4 w-4" />
               </Button>
             </div>
-            
+
             <div className="flex flex-wrap gap-2">
               {additionalInfo.languages.map((language, index) => (
                 <div
@@ -170,7 +181,7 @@ export const AdditionalInfoForm: React.FC<AdditionalInfoFormProps> = ({ data, up
               ))}
             </div>
           </div>
-          
+
           <FormField
             control={form.control}
             name="references"
@@ -178,7 +189,7 @@ export const AdditionalInfoForm: React.FC<AdditionalInfoFormProps> = ({ data, up
               <FormItem>
                 <FormLabel>References (Optional)</FormLabel>
                 <FormControl>
-                  <Textarea 
+                  <Textarea
                     placeholder="Available upon request"
                     className="min-h-[80px] rounded-md"
                     {...field}

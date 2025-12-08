@@ -29,6 +29,13 @@ export const ProjectsForm: React.FC<ProjectsFormProps> = ({ data, updateData }) 
   const [technologies, setTechnologies] = useState<string[]>([]);
   const [isEditing, setIsEditing] = useState<string | null>(null);
 
+  // Sync local state with prop when data is restored from localStorage
+  React.useEffect(() => {
+    if (JSON.stringify(data) !== JSON.stringify(projects)) {
+      setProjects(data);
+    }
+  }, [data]);
+
   const form = useForm<z.infer<typeof projectSchema>>({
     resolver: zodResolver(projectSchema),
     defaultValues: {
@@ -49,7 +56,7 @@ export const ProjectsForm: React.FC<ProjectsFormProps> = ({ data, updateData }) 
     };
 
     if (isEditing) {
-      const updated = projects.map(proj => 
+      const updated = projects.map(proj =>
         proj.id === isEditing ? project : proj
       );
       setProjects(updated);
@@ -101,7 +108,7 @@ export const ProjectsForm: React.FC<ProjectsFormProps> = ({ data, updateData }) 
   return (
     <div className="space-y-6">
       <h2 className="text-2xl font-bold">Projects</h2>
-      
+
       {projects.length > 0 && (
         <div className="space-y-4 mb-6">
           {projects.map((project) => (
@@ -111,7 +118,7 @@ export const ProjectsForm: React.FC<ProjectsFormProps> = ({ data, updateData }) 
               </CardHeader>
               <CardContent>
                 <p className="text-gray-700 dark:text-gray-300">{project.description}</p>
-                
+
                 {project.technologies.length > 0 && (
                   <div className="mt-2">
                     <p><strong>Technologies:</strong></p>
@@ -127,7 +134,7 @@ export const ProjectsForm: React.FC<ProjectsFormProps> = ({ data, updateData }) 
                     </div>
                   </div>
                 )}
-                
+
                 {project.link && (
                   <p className="mt-2">
                     <strong>Link:</strong>{" "}
@@ -141,7 +148,7 @@ export const ProjectsForm: React.FC<ProjectsFormProps> = ({ data, updateData }) 
                     </a>
                   </p>
                 )}
-                
+
                 <div className="absolute top-4 right-4 flex space-x-2">
                   <Button
                     variant="ghost"
@@ -165,13 +172,13 @@ export const ProjectsForm: React.FC<ProjectsFormProps> = ({ data, updateData }) 
           ))}
         </div>
       )}
-      
+
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
           <h3 className="text-lg font-medium">
             {isEditing ? "Edit Project" : "Add Project"}
           </h3>
-          
+
           <FormField
             control={form.control}
             name="title"
@@ -185,7 +192,7 @@ export const ProjectsForm: React.FC<ProjectsFormProps> = ({ data, updateData }) 
               </FormItem>
             )}
           />
-          
+
           <FormField
             control={form.control}
             name="description"
@@ -193,17 +200,17 @@ export const ProjectsForm: React.FC<ProjectsFormProps> = ({ data, updateData }) 
               <FormItem>
                 <FormLabel>Description</FormLabel>
                 <FormControl>
-                  <Textarea 
+                  <Textarea
                     placeholder="A brief description of your project"
                     className="min-h-[100px] rounded-md"
-                    {...field} 
+                    {...field}
                   />
                 </FormControl>
                 <FormMessage />
               </FormItem>
             )}
           />
-          
+
           <div className="space-y-2">
             <FormLabel>Technologies Used</FormLabel>
             <div className="flex gap-2">
@@ -222,7 +229,7 @@ export const ProjectsForm: React.FC<ProjectsFormProps> = ({ data, updateData }) 
                 <Plus className="h-4 w-4" />
               </Button>
             </div>
-            
+
             <div className="flex flex-wrap gap-2 mt-2">
               {technologies.map((tech, i) => (
                 <div
@@ -238,7 +245,7 @@ export const ProjectsForm: React.FC<ProjectsFormProps> = ({ data, updateData }) 
               ))}
             </div>
           </div>
-          
+
           <FormField
             control={form.control}
             name="link"
@@ -253,7 +260,7 @@ export const ProjectsForm: React.FC<ProjectsFormProps> = ({ data, updateData }) 
               </FormItem>
             )}
           />
-          
+
           <div className="flex justify-end gap-2 mt-6">
             {isEditing && (
               <Button

@@ -1,11 +1,11 @@
 import React, { useRef } from 'react';
 import { Button } from "@/components/ui/button";
 import { ResumeData, ResumeTemplate } from "@/types/resume";
-import { 
-  ProfessionalTemplate, 
-  MinimalistTemplate, 
-  CreativeTemplate, 
-  TechTemplate, 
+import {
+  ProfessionalTemplate,
+  MinimalistTemplate,
+  CreativeTemplate,
+  TechTemplate,
   ModernCompactTemplate,
   ElegantTemplate,
   MinimalBarTemplate,
@@ -28,7 +28,7 @@ export const ResumePreview: React.FC<ResumePreviewProps> = ({
 }) => {
   const { toast } = useToast();
   const resumeRef = useRef<HTMLDivElement>(null);
-  
+
   const renderTemplate = () => {
     switch (template as ResumeTemplate) {
       case 'professional':
@@ -51,24 +51,39 @@ export const ResumePreview: React.FC<ResumePreviewProps> = ({
         return <ProfessionalTemplate data={resumeData} />;
     }
   };
-  
+
   const downloadPDF = () => {
     if (!resumeRef.current) return;
-    
+
     const element = resumeRef.current;
     const opt = {
-      margin: 0,
+      margin: [5, 0, 5, 0], // Small top/bottom margins, no side margins
       filename: `${resumeData.personal.firstName}_${resumeData.personal.lastName}_Resume.pdf`,
-      image: { type: 'jpeg', quality: 1 },
-      html2canvas: { scale: 2, useCORS: true },
-      jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+      image: { type: 'jpeg', quality: 0.98 },
+      html2canvas: {
+        scale: 2,
+        useCORS: true,
+        logging: false,
+        letterRendering: true
+      },
+      jsPDF: {
+        unit: 'mm',
+        format: 'a4',
+        orientation: 'portrait'
+      },
+      pagebreak: {
+        mode: ['avoid-all', 'css', 'legacy'],
+        before: '.page-break-before',
+        after: '.page-break-after',
+        avoid: ['section', 'div', 'h2', 'h3']
+      }
     };
-    
+
     toast({
       title: "Preparing download...",
       description: "Your resume is being generated."
     });
-    
+
     html2pdf().set(opt).from(element).save().then(() => {
       toast({
         title: "Download complete!",
@@ -76,10 +91,10 @@ export const ResumePreview: React.FC<ResumePreviewProps> = ({
       });
     });
   };
-  
+
   const printResume = () => {
     if (!resumeRef.current) return;
-    
+
     const printWindow = window.open('', '_blank');
     if (!printWindow) {
       toast({
@@ -89,7 +104,7 @@ export const ResumePreview: React.FC<ResumePreviewProps> = ({
       });
       return;
     }
-    
+
     const content = resumeRef.current.innerHTML;
     const htmlContent = `
       <!DOCTYPE html>
@@ -109,19 +124,19 @@ export const ResumePreview: React.FC<ResumePreviewProps> = ({
         </body>
       </html>
     `;
-    
+
     printWindow.document.write(htmlContent);
     printWindow.document.close();
-    
+
     setTimeout(() => {
       printWindow.print();
     }, 500);
   };
-  
+
   const saveLocally = () => {
     const savedResumesStr = localStorage.getItem('resumeData');
     const savedResumes = savedResumesStr ? JSON.parse(savedResumesStr) : [];
-    
+
     const newSavedResume = {
       id: Date.now(),
       title: `${resumeData.personal.firstName} ${resumeData.personal.lastName}'s Resume`,
@@ -129,21 +144,21 @@ export const ResumePreview: React.FC<ResumePreviewProps> = ({
       template,
       date: new Date().toISOString()
     };
-    
+
     savedResumes.push(newSavedResume);
     localStorage.setItem('resumeData', JSON.stringify(savedResumes));
-    
+
     toast({
       title: "Resume saved!",
       description: "You can access it later from the My Resumes section."
     });
   };
-  
+
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <h2 className="text-2xl font-bold">Resume Preview</h2>
-        
+
         <div className="flex space-x-3">
           <Button variant="outline" onClick={saveLocally}>
             <Save className="mr-2 h-4 w-4" />
@@ -159,16 +174,17 @@ export const ResumePreview: React.FC<ResumePreviewProps> = ({
           </Button>
         </div>
       </div>
-      
-      <div className="flex justify-center p-4 bg-gray-100 dark:bg-gray-800 rounded-lg overflow-hidden">
-        <div 
-          className="w-[210mm] min-h-[297mm] shadow-xl bg-white"
+
+      <div className="flex justify-center p-4 bg-gray-100 dark:bg-gray-800 rounded-lg overflow-auto max-h-[85vh]">
+        <div
+          className="w-[210mm] shadow-xl bg-white"
           ref={resumeRef}
+          style={{ maxWidth: '100%' }}
         >
           {renderTemplate()}
         </div>
       </div>
-      
+
       <div className="flex justify-between mt-8">
         <Button onClick={onPrev} variant="outline">
           <ChevronLeft className="mr-2 h-4 w-4" />

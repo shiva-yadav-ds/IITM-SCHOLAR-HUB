@@ -31,6 +31,13 @@ export const ExperienceForm: React.FC<ExperienceFormProps> = ({ data, updateData
   const [responsibilities, setResponsibilities] = useState<string[]>([]);
   const [isEditing, setIsEditing] = useState<string | null>(null);
 
+  // Sync local state with prop when data is restored from localStorage
+  React.useEffect(() => {
+    if (JSON.stringify(data) !== JSON.stringify(experiences)) {
+      setExperiences(data);
+    }
+  }, [data]);
+
   const form = useForm<z.infer<typeof experienceSchema>>({
     resolver: zodResolver(experienceSchema),
     defaultValues: {
@@ -57,7 +64,7 @@ export const ExperienceForm: React.FC<ExperienceFormProps> = ({ data, updateData
     };
 
     if (isEditing) {
-      const updated = experiences.map(exp => 
+      const updated = experiences.map(exp =>
         exp.id === isEditing ? experience : exp
       );
       setExperiences(updated);
@@ -111,7 +118,7 @@ export const ExperienceForm: React.FC<ExperienceFormProps> = ({ data, updateData
   return (
     <div className="space-y-6">
       <h2 className="text-2xl font-bold">Professional Experience</h2>
-      
+
       {experiences.length > 0 && (
         <div className="space-y-4 mb-6">
           {experiences.map((experience) => (
@@ -154,13 +161,13 @@ export const ExperienceForm: React.FC<ExperienceFormProps> = ({ data, updateData
           ))}
         </div>
       )}
-      
+
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
           <h3 className="text-lg font-medium">
             {isEditing ? "Edit Experience" : "Add Experience"}
           </h3>
-          
+
           <FormField
             control={form.control}
             name="title"
@@ -174,7 +181,7 @@ export const ExperienceForm: React.FC<ExperienceFormProps> = ({ data, updateData
               </FormItem>
             )}
           />
-          
+
           <FormField
             control={form.control}
             name="company"
@@ -188,7 +195,7 @@ export const ExperienceForm: React.FC<ExperienceFormProps> = ({ data, updateData
               </FormItem>
             )}
           />
-          
+
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <FormField
               control={form.control}
@@ -204,7 +211,7 @@ export const ExperienceForm: React.FC<ExperienceFormProps> = ({ data, updateData
                 </FormItem>
               )}
             />
-            
+
             {!watchCurrentJob && (
               <FormField
                 control={form.control}
@@ -222,7 +229,7 @@ export const ExperienceForm: React.FC<ExperienceFormProps> = ({ data, updateData
               />
             )}
           </div>
-          
+
           <FormField
             control={form.control}
             name="currentJob"
@@ -247,7 +254,7 @@ export const ExperienceForm: React.FC<ExperienceFormProps> = ({ data, updateData
               </FormItem>
             )}
           />
-          
+
           <div className="space-y-2">
             <FormLabel>Responsibilities</FormLabel>
             <div className="flex gap-2">
@@ -266,7 +273,7 @@ export const ExperienceForm: React.FC<ExperienceFormProps> = ({ data, updateData
                 <Plus className="h-4 w-4" />
               </Button>
             </div>
-            
+
             <div className="space-y-2 mt-2">
               {responsibilities.map((resp, i) => (
                 <div
@@ -282,7 +289,7 @@ export const ExperienceForm: React.FC<ExperienceFormProps> = ({ data, updateData
               ))}
             </div>
           </div>
-          
+
           <div className="flex justify-end gap-2 mt-6">
             {isEditing && (
               <Button
