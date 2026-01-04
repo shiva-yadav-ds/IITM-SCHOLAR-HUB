@@ -41,10 +41,11 @@ import {
 
 // Field Label mapping
 const fieldLabels: Record<string, string> = {
+  // Note: GAA fields removed for foundation level, but still used in diploma (5%)
   gaa: "GAA (Weekly assignments average)",
   gaa1: "GAA1 (Objective assignments)",
-  gaa2: "GAA2 (Programming assignments)",
-  gaa3: "GAA3 (Programming assignments)",
+  gaa2: "GAA2 (SQL Assignments - Week 2,3)",
+  gaa3: "GAA3 (Programming Assignment - Week 7)",
   gaap: "GAAP (Programming assignments average)",
   gpa: "GPA (Graded Programming Assignments score)",
   quiz1: "Quiz 1 Score",
@@ -53,7 +54,7 @@ const fieldLabels: Record<string, string> = {
   quizzes: "Quiz Marks (Combined Quiz 1 + Quiz 2)",
   finalExam: "Final Exam Score",
   normalBonus: "Normal Bonus (Max 2)",
-  programmingBonus: "Programming Assignment Bonus (Max 5)",
+  programmingBonus: "Programming Assignment Bonus (Max 3)",
   llmProgrammingBonus: "Programming Assignments Bonus (Max 10)",
   extraActivityBonus: "Extra Activity Bonus (Max 5)",
   extraAssignmentBonus: "Extra Assignment Bonus (Max 10)",
@@ -73,38 +74,35 @@ const fieldLabels: Record<string, string> = {
   cp: "Course Participation Activity Score",
   // Professional Growth fields
   gp: "Group Project Score",
-  // Big Data & Programming in C fields
-  oppe1: "Online Proctored Exam 1 Score",
-  oppe2: "Online Proctored Exam 2 Score",
-  // Deep Learning Practice fields
-  nppe1: "Non-Proctored Programming Exam 1",
-  nppe2: "Non-Proctored Programming Exam 2",
-  nppe3: "Non-Proctored Programming Exam 3",
-  // Data Visualization fields
-  ga: "Graded Assignments Average",
-  project: "Group Project Score",
   // ML Practice fields
-  ope1: "Online Proctored Programming Exam 1",
-  ope2: "Online Proctored Programming Exam 2",
-  npe1: "Non-Proctored Programming Exam 1",
-  npe2: "Non-Proctored Programming Exam 2",
-  // Business Data Management fields
-  roe: "Remote Online Exam Score",
+  oppe1: "OPPE-1 Score",
+  oppe2: "OPPE-2 Score",
+  ka: "Kaggle Assignments Average",
+  // Deep Learning & GenAI fields
+  nppe1: "NPPE-1 (Non-Proctored Programming Exam 1)",
+  nppe2: "NPPE-2 (Non-Proctored Programming Exam 2)",
+  nppe3: "Non-Proctored Programming Exam 3",
+  // BDM fields
+  ga: "Graded Assignments (out of 10)",
+  timedAssignment: "Timed Assignment (out of 20)",
+  project: "Group Project Score",
   // Business Analytics fields
-  a: "Best 2 of 3 Assignments Score",
+  a: "Best 2 of 3 Assignments (out of 20)",
   // Tools in Data Science fields
+  roe: "Remote Online Exam Score",
   roe1: "Remote Online Exam 1 Score",
   p1: "Project 1 Score",
   p2: "Project 2 Score",
-  // PDSA fields
-  op: "Online Proctored Remote Exam Score",
+  // PDSA, DBMS fields
+  op: "OPPE Score (Online Proctored Exam)",
   // App Dev 1 fields
-  gla: "Best 3 of 6 Lab Assignments Score",
+  gla: "GLA (Best Lab Assignments Score)",
   // Java fields
-  pe1: "Programming Exam 1 Score",
-  pe2: "Programming Exam 2 Score",
+  pe1: "OPPE-1 (Online Proctored Programming Exam 1)",
+  pe2: "OPPE-2 (Online Proctored Programming Exam 2)",
   // System Commands fields
-  bpta: "Biweekly Programming Test Average",
+  bpta: "BPTA (Biweekly Programming Test Average)",
+  oppe: "OPPE Score",
   ope: "Online Proctored Exam Score",
   // Legacy fields
   internalMarks: "Internal Marks",
@@ -291,7 +289,7 @@ export default function GradeCalculator() {
 
     // Calculate scores using the new function that provides breakdown
     const scoreResult = calculateFoundationScores(params);
-    const totalScore = scoreResult.scoreWithNormalBonus;
+    const totalScore = scoreResult.finalScore;
     const { grade, gradePoint } = calculateGradeAndPoints(totalScore);
 
     const newCourse: CourseGrade = {
@@ -600,20 +598,24 @@ export default function GradeCalculator() {
                       {level === 'foundation' && scoreBreakdown ? (
                         <div className="space-y-1">
                           <div className="text-sm text-gray-400">
-                            Without Bonus: {scoreBreakdown.scoreWithoutNormalBonus.toFixed(0)}%
+                            Base Score: {scoreBreakdown.baseScore}%
                           </div>
-                          <div className="font-medium text-green-400 flex items-center justify-center gap-1">
-                            <span>With Bonus (+2): {scoreBreakdown.scoreWithNormalBonus.toFixed(0)}%</span>
-                            {scoreBreakdown.qualifiesForNormalBonus && (
+                          {scoreBreakdown.bonusApplied > 0 ? (
+                            <div className="font-medium text-green-400 flex items-center justify-center gap-1">
+                              <span>With Bonus (+{scoreBreakdown.bonusApplied}): {scoreBreakdown.finalScore}%</span>
                               <span className="inline-flex items-center px-1.5 py-0.5 rounded text-xs bg-green-500/20 text-green-400">
                                 <Info className="w-3 h-3 mr-0.5" />
-                                Auto
+                                Bonus
                               </span>
-                            )}
-                          </div>
+                            </div>
+                          ) : (
+                            <div className="font-medium">
+                              Final: {scoreBreakdown.finalScore}%
+                            </div>
+                          )}
                         </div>
                       ) : (
-                        <span>{course.score.toFixed(2)}%</span>
+                        <span>{course.score.toFixed(0)}%</span>
                       )}
                     </td>
                     <td className="py-3 px-4 text-center">
@@ -666,12 +668,24 @@ export default function GradeCalculator() {
   const renderInputFields = (subject: string) => {
     if (!subject) return null;
 
+    // Get dynamic label for extraActivityBonus based on subject
+    const getFieldLabel = (field: string) => {
+      if (field === 'extraActivityBonus') {
+        if (subject === 'BSCCS1006') { // Math 2
+          return 'Extra Activity Bonus (Max 6)';
+        } else {
+          return 'Extra Activity Bonus (Max 5)';
+        }
+      }
+      return fieldLabels[field] || field;
+    };
+
     return (
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 w-full">
         {requiredFields.map((field) => (
           <div key={field} className="flex flex-col space-y-2">
             <Label htmlFor={field} className="text-sm font-medium">
-              {fieldLabels[field] || field}
+              {getFieldLabel(field)}
             </Label>
             <Input
               id={field}
@@ -681,7 +695,7 @@ export default function GradeCalculator() {
               step="0.01"
               value={formValues[field] || ''}
               onChange={(e) => handleInputChange(field, e.target.value)}
-              placeholder={`Enter ${fieldLabels[field] || field}`}
+              placeholder={`Enter ${getFieldLabel(field)}`}
               className="w-full"
             />
           </div>

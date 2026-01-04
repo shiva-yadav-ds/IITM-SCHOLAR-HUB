@@ -87,6 +87,46 @@ export function getCoursesForLevel(level: ProgramLevel): CourseData[] {
   return courses;
 }
 
+// Credits constants for each level
+export const LEVEL_CREDITS: Record<ProgramLevel, number> = {
+  foundation: 32,  // 8 subjects × 4 credits
+  diploma: 50,     // 13 subjects (varied credits)
+  bsc: 32,         // BSc level courses
+  bs: 18,          // BS level courses
+};
+
+// Calculate combined CGPA with direct previous level CGPA input
+export function calculateCombinedCGPA(
+  previousCGPA: number,
+  previousCredits: number,
+  currentEntries: CourseEntry[]
+): CGPAResult {
+  // Calculate current level CGPA
+  const currentResult = calculateCGPA(currentEntries);
+
+  if (currentResult.coursesCount === 0) {
+    return {
+      cgpa: previousCGPA,
+      percentage: previousCGPA * 10,
+      totalCredits: previousCredits,
+      coursesCount: 0,
+    };
+  }
+
+  // Calculate combined grade points
+  const previousGradePoints = previousCGPA * previousCredits;
+  const currentGradePoints = currentResult.cgpa * currentResult.totalCredits;
+  const totalCredits = previousCredits + currentResult.totalCredits;
+  const combinedCGPA = (previousGradePoints + currentGradePoints) / totalCredits;
+
+  return {
+    cgpa: Math.round(combinedCGPA * 100) / 100,
+    percentage: Math.round(combinedCGPA * 10 * 100) / 100,
+    totalCredits,
+    coursesCount: currentResult.coursesCount,
+  };
+}
+
 // Get courses by specific level only
 export function getCoursesByLevel(level: ProgramLevel): CourseData[] {
   switch (level) {

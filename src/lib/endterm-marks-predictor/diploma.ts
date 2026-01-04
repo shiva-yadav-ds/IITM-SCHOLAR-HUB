@@ -1,4 +1,4 @@
-// Define constants for grade thresholds (same as foundation)
+// Define constants for grade thresholds
 export const gradeThresholds = [
   { grade: 'S', min: 90, max: 100, points: 10 },
   { grade: 'A', min: 80, max: 89, points: 9 },
@@ -8,53 +8,52 @@ export const gradeThresholds = [
   { grade: 'E', min: 40, max: 49, points: 4 }
 ];
 
-// Diploma level subjects
+// Diploma level subjects - updated for 2026
 export const diplomaSubjects = [
-  { value: 'MLF', label: 'Machine Learning Foundations', code: 'MLF' },
-  { value: 'MLT', label: 'Machine Learning Techniques', code: 'MLT' },
-  { value: 'MLP', label: 'Machine Learning Practice', code: 'MLP' },
-  { value: 'BDM', label: 'Business Data Management', code: 'BDM' },
-  { value: 'BA', label: 'Business Analytics', code: 'BA' },
-  { value: 'TDS', label: 'Tools in Data Science', code: 'TDS' },
-  { value: 'JAVA', label: 'Programming Concepts Using Java', code: 'JAVA' },
-  { value: 'DBMS', label: 'Database Management System', code: 'DBMS' },
-  { value: 'AD1', label: 'Application Development - 1', code: 'AD1' },
-  { value: 'PDSA', label: 'Programming Data Structures and Algorithms', code: 'PDSA' },
-  { value: 'SC', label: 'System Commands', code: 'SC' },
-  { value: 'AD2', label: 'Application Development - 2', code: 'AD2' }
+  { value: 'ml_foundations', label: 'Machine Learning Foundations', code: 'MLF' },
+  { value: 'ml_techniques', label: 'Machine Learning Techniques', code: 'MLT' },
+  { value: 'ml_practice', label: 'Machine Learning Practice', code: 'MLP' },
+  { value: 'business_data_management', label: 'Business Data Management', code: 'BDM' },
+  { value: 'business_analytics', label: 'Business Analytics', code: 'BA' },
+  { value: 'tools_in_data_science', label: 'Tools in Data Science', code: 'TDS' },
+  { value: 'pdsa', label: 'Programming Data Structures and Algorithms', code: 'PDSA' },
+  { value: 'dbms', label: 'Database Management System', code: 'DBMS' },
+  { value: 'app_dev_1', label: 'Application Development - 1', code: 'AD1' },
+  { value: 'java', label: 'Programming Concepts Using Java', code: 'JAVA' },
+  { value: 'system_commands', label: 'System Commands', code: 'SC' },
+  { value: 'app_dev_2', label: 'Application Development - 2', code: 'AD2' },
+  { value: 'dl_genai', label: 'Introduction to Deep Learning and Generative AI', code: 'DLDG' }
 ];
 
-// Input interface for prediction
+// Input interface for prediction - updated with new fields
 export interface DiplomaPredictorInput {
   subject: string;
   gaa?: number;
-  gaa1?: number;
-  gaa2?: number;
-  gaa3?: number;
-  ga?: number;
-  gla?: number;
+  gaa2?: number;  // For DBMS: SQL assignments
+  gaa3?: number;  // For DBMS: Programming assignment
   quiz1?: number;
   quiz2?: number;
-  quiz?: number;
-  ope1?: number;
-  ope2?: number;
-  ope?: number;
-  oppe?: number;
-  op?: number;
-  npe1?: number;
-  npe2?: number;
-  pe1?: number;
-  pe2?: number;
-  roe?: number;
-  roe1?: number;
-  a?: number;
-  p1?: number;
-  p2?: number;
-  bpt?: number;
+  oppe1?: number;  // ML Practice
+  oppe2?: number;  // ML Practice
+  ka?: number;     // Kaggle Assignments for ML Practice
+  ga?: number;     // BDM: Graded Assignments (out of 10)
+  timedAssignment?: number;  // BDM: Timed Assignment (out of 20)
+  a?: number;      // Business Analytics: Best 2 of 3 assignments (out of 20)
+  roe?: number;    // Tools in DS: Remote Online Exam
+  p1?: number;     // Tools in DS: Project 1
+  p2?: number;     // Tools in DS: Project 2
+  op?: number;     // PDSA, DBMS: Online Proctored Exam
+  gla?: number;    // App Dev 1: Graded Lab Assignments
+  pe1?: number;    // Java: OPPE 1
+  pe2?: number;    // Java: OPPE 2
+  bpta?: number;   // System Commands: Biweekly Programming Test Average
+  oppe?: number;   // System Commands: OPPE
+  nppe1?: number;  // DL GenAI: Non-proctored programming exam 1
+  nppe2?: number;  // DL GenAI: Non-proctored programming exam 2
   [key: string]: string | number | undefined;
 }
 
-// Result interface for prediction (same as foundation)
+// Result interface for prediction
 export interface PredictionResult {
   grade: string;
   required: number;
@@ -63,315 +62,219 @@ export interface PredictionResult {
 
 /**
  * Get required fields based on selected subject
+ * Updated for 2026 formulas - uses subject CODE (e.g., MLP, MLF)
  */
 export function getRequiredFields(subject: string): string[] {
   switch (subject) {
-    case 'MLF': // Machine Learning Foundations
+    case 'MLF': // ML Foundations
       return ['gaa', 'quiz1', 'quiz2'];
-    case 'MLT': // Machine Learning Techniques
+    case 'MLT': // ML Techniques
       return ['gaa', 'quiz1', 'quiz2'];
-    case 'MLP': // Machine Learning Practice
-      return ['gaa', 'quiz1', 'ope1', 'ope2', 'npe1', 'npe2'];
+    case 'MLP': // ML Practice
+      return ['gaa', 'oppe1', 'oppe2', 'ka'];
     case 'BDM': // Business Data Management
-      return ['ga', 'quiz2', 'roe'];
+      return ['ga', 'quiz2', 'timedAssignment'];
     case 'BA': // Business Analytics
-      return ['a', 'quiz'];
+      return ['quiz1', 'quiz2', 'a'];
     case 'TDS': // Tools in Data Science
-      return ['gaa', 'roe1', 'p1', 'p2'];
-    case 'JAVA': // Programming Concepts Using Java
-      return ['gaa', 'quiz1', 'quiz2', 'oppe'];
-    case 'DBMS': // Database Management System
-      return ['gaa1', 'gaa2', 'gaa3', 'quiz1', 'quiz2', 'op'];
-    case 'AD1': // Application Development - 1
-    case 'AD2': // Application Development - 2 (same fields as AD1)
-      return ['gla', 'ga', 'quiz1', 'quiz2'];
-    case 'PDSA': // Programming Data Structures and Algorithms using Python
-      return ['gaa1', 'gaa2', 'quiz1', 'pe1', 'pe2'];
+      return ['gaa', 'roe', 'p1', 'p2'];
+    case 'PDSA':
+      return ['gaa', 'quiz1', 'quiz2', 'op'];
+    case 'DBMS':
+      return ['gaa2', 'gaa3', 'quiz1', 'quiz2', 'op'];
+    case 'AD1': // App Dev 1
+      return ['gla', 'quiz1', 'quiz2'];
+    case 'JAVA':
+      return ['gaa', 'quiz1', 'quiz2', 'pe1', 'pe2'];
     case 'SC': // System Commands
-      return ['gaa', 'bpt', 'oppe'];
+      return ['gaa', 'quiz1', 'bpta', 'oppe'];
+    case 'AD2': // App Dev 2
+      return ['gaa', 'quiz1', 'quiz2'];
+    case 'DLDG': // DL GenAI
+      return ['gaa', 'quiz1', 'quiz2', 'nppe1', 'nppe2'];
     default:
       return [];
   }
 }
 
 /**
- * Check eligibility based on course requirements
+ * Get the formula as a string for display purposes
  */
-function checkEligibility(input: DiplomaPredictorInput): { eligible: boolean, reason: string } {
-  const { subject, gaa = 0, gaa1 = 0, gaa2 = 0, ga = 0, quiz1 = 0, quiz2 = 0, quiz = 0, a = 0 } = input;
-  
-  // Common eligibility rules for most courses
-  let weeklyAssessmentAvg = 0;
-  let hasAttendedQuiz = false;
-  
+export function getFormula(subject: string): string {
   switch (subject) {
     case 'MLF':
+      return 'T = 0.05×GAA + max(0.6×F + 0.25×max(Qz1,Qz2), 0.4×F + 0.25×Qz1 + 0.3×Qz2)';
     case 'MLT':
+      return 'T = 0.05×GAA + max(0.6×F + 0.25×max(Qz1,Qz2), 0.4×F + 0.25×Qz1 + 0.3×Qz2) + Bonus (3)';
     case 'MLP':
-    case 'JAVA':
-    case 'SC':
-      weeklyAssessmentAvg = gaa;
-      hasAttendedQuiz = (quiz1 > 0 || quiz2 > 0);
-      break;
-    case 'PDSA':
-      weeklyAssessmentAvg = (gaa1 + gaa2) / 2;
-      hasAttendedQuiz = (quiz1 > 0);
-      break;
-    case 'DBMS':
-      weeklyAssessmentAvg = gaa1;
-      hasAttendedQuiz = (quiz1 > 0 || quiz2 > 0);
-      break;
+      return 'T = 0.1×GAA + 0.3×F + 0.2×OPPE1 + 0.2×OPPE2 + 0.2×KA';
     case 'BDM':
-      weeklyAssessmentAvg = ga;
-      hasAttendedQuiz = (quiz2 > 0);
-      break;
+      return 'T = GA(10) + Qz2(20) + Timed(20) + F(50)';
     case 'BA':
-      weeklyAssessmentAvg = a;
-      hasAttendedQuiz = (quiz > 0);
-      break;
+      return 'T = Qz + A + F where Qz = 0.7×max + 0.3×min';
     case 'TDS':
-      weeklyAssessmentAvg = gaa;
-      hasAttendedQuiz = true; // No quiz mentioned in rules
-      break;
+      return 'T = 0.1×GAA + 0.2×ROE + 0.2×P1 + 0.2×P2 + 0.3×F';
+    case 'PDSA':
+      return 'T = 0.05×GAA + 0.2×OP + 0.45×F + max(0.2×max(Qz1,Qz2), 0.1×Qz1 + 0.2×Qz2)';
+    case 'DBMS':
+      return 'T = 0.03×GAA2 + 0.02×GAA3 + 0.2×OP + 0.45×F + max(0.2×max(Qz1,Qz2), 0.1×Qz1 + 0.2×Qz2)';
     case 'AD1':
+      return 'T = 0.05×GLA + max(0.6×F + 0.25×max(Qz1,Qz2), 0.4×F + 0.25×Qz1 + 0.3×Qz2)';
+    case 'JAVA':
+      return 'T = 0.05×GAA + 0.2×max(PE1,PE2) + 0.45×F + max(0.2×max(Qz1,Qz2), 0.1×Qz1 + 0.2×Qz2) + 0.1×min(PE1,PE2)';
+    case 'SC':
+      return 'T = 0.05×GAA + 0.25×Qz1 + 0.3×OPPE + 0.3×F + 0.1×BPTA';
     case 'AD2':
-      weeklyAssessmentAvg = ga;
-      hasAttendedQuiz = (quiz1 > 0 || quiz2 > 0);
-      break;
+      return 'T = 0.05×GAA + max(0.6×F + 0.25×max(Qz1,Qz2), 0.4×F + 0.25×Qz1 + 0.3×Qz2)';
+    case 'DLDG':
+      return 'T = 0.1×GAA + 0.2×Qz1 + 0.2×Qz2 + 0.25×F + 0.1×NPPE1 + 0.15×NPPE2';
     default:
-      return { eligible: false, reason: 'Unknown subject' };
+      return '';
   }
-  
-  // Check if weekly assessment average is at least 40/100
-  if (weeklyAssessmentAvg < 40) {
-    return { eligible: false, reason: 'Weekly assessment average must be at least 40/100' };
-  }
-  
-  // Check if student has attended at least one quiz (if required)
-  if (!hasAttendedQuiz) {
-    return { eligible: false, reason: 'Must attend at least one quiz' };
-  }
-  
-  return { eligible: true, reason: '' };
 }
 
-/**
- * Calculate required final exam score for Machine Learning Foundations
- */
-function calculateMLF(gaa: number, quiz1: number, quiz2: number, targetScore: number): number {
-  // T = 0.1×GAA + max(0.6×F + 0.2×max(Qz1, Qz2), 0.4×F + 0.2×Qz1 + 0.3×Qz2)
-  // Same as standard formula in foundation courses
-  
+// ML Foundations: T = 0.05*GAA + max(0.6F + 0.25*max(Qz1,Qz2), 0.4F + 0.25*Qz1 + 0.3*Qz2)
+function calculateMLFoundations(gaa: number, quiz1: number, quiz2: number, targetScore: number): number {
   const maxQuiz = Math.max(quiz1, quiz2);
-  const gaaComponent = 0.1 * gaa;
-  
-  // Formula 1: T = 0.1×GAA + 0.6×F + 0.2×max(Qz1, Qz2)
-  const formula1 = (targetScore - gaaComponent - 0.2 * maxQuiz) / 0.6;
-  
-  // Formula 2: T = 0.1×GAA + 0.4×F + 0.2×Qz1 + 0.3×Qz2
-  const formula2 = (targetScore - gaaComponent - 0.2 * quiz1 - 0.3 * quiz2) / 0.4;
-  
+  const gaaComponent = 0.05 * gaa;
+
+  // Formula 1: F = (T - 0.05*GAA - 0.25*max(Qz1, Qz2)) / 0.6
+  const formula1 = (targetScore - gaaComponent - 0.25 * maxQuiz) / 0.6;
+
+  // Formula 2: F = (T - 0.05*GAA - 0.25*Qz1 - 0.3*Qz2) / 0.4
+  const formula2 = (targetScore - gaaComponent - 0.25 * quiz1 - 0.3 * quiz2) / 0.4;
+
   return Math.min(formula1, formula2);
 }
 
-/**
- * Calculate required final exam score for Machine Learning Techniques
- */
-function calculateMLT(gaa: number, quiz1: number, quiz2: number, targetScore: number): number {
-  // T = 0.1×GAA + 0.4×F + max(0.25×Qz1 + 0.25×Qz2, 0.4×max(Qz1, Qz2))
-  
-  const gaaComponent = 0.1 * gaa;
-  
-  // Calculate the quiz component using max
-  const quizComponent1 = 0.25 * quiz1 + 0.25 * quiz2;
-  const quizComponent2 = 0.4 * Math.max(quiz1, quiz2);
-  const quizComponent = Math.max(quizComponent1, quizComponent2);
-  
-  // T = 0.1×GAA + 0.4×F + quizComponent
-  // T - 0.1×GAA - quizComponent = 0.4×F
-  // F = (T - 0.1×GAA - quizComponent) / 0.4
-  
-  return (targetScore - gaaComponent - quizComponent) / 0.4;
+// ML Techniques: Same as ML Foundations (bonus is handled separately in grade calc)
+function calculateMLTechniques(gaa: number, quiz1: number, quiz2: number, targetScore: number): number {
+  return calculateMLFoundations(gaa, quiz1, quiz2, targetScore);
 }
 
-/**
- * Calculate required final exam score for Machine Learning Practice
- */
-function calculateMLP(gaa: number, quiz1: number, ope1: number, ope2: number, npe1: number, npe2: number, targetScore: number): number {
-  // T = 0.1×GAA + 0.35×F + 0.20×OPE1 + 0.20×OPE2 + 0.15×Qz1 + NPE Bonus
-  // NPE Bonus = 0.025×NPE1 + 0.025×NPE2
-  
+// ML Practice: T = 0.1*GAA + 0.3*F + 0.2*OPPE1 + 0.2*OPPE2 + 0.2*KA
+function calculateMLPractice(gaa: number, oppe1: number, oppe2: number, ka: number, targetScore: number): number {
   const gaaComponent = 0.1 * gaa;
-  const quiz1Component = 0.15 * quiz1;
-  const ope1Component = 0.20 * ope1;
-  const ope2Component = 0.20 * ope2;
-  const npeBonus = 0.025 * npe1 + 0.025 * npe2;
-  
-  // T = 0.1×GAA + 0.35×F + 0.20×OPE1 + 0.20×OPE2 + 0.15×Qz1 + NPE Bonus
-  // T - 0.1×GAA - 0.20×OPE1 - 0.20×OPE2 - 0.15×Qz1 - NPE Bonus = 0.35×F
-  // F = (T - 0.1×GAA - 0.20×OPE1 - 0.20×OPE2 - 0.15×Qz1 - NPE Bonus) / 0.35
-  
-  return (targetScore - gaaComponent - ope1Component - ope2Component - quiz1Component - npeBonus) / 0.35;
+  const oppe1Component = 0.2 * oppe1;
+  const oppe2Component = 0.2 * oppe2;
+  const kaComponent = 0.2 * ka;
+
+  // F = (T - 0.1*GAA - 0.2*OPPE1 - 0.2*OPPE2 - 0.2*KA) / 0.3
+  return (targetScore - gaaComponent - oppe1Component - oppe2Component - kaComponent) / 0.3;
 }
 
-/**
- * Calculate required final exam score for Business Data Management
- */
-function calculateBDM(ga: number, quiz2: number, roe: number, targetScore: number): number {
-  // T = 0.3×GA + 0.20×Qz2 + 0.2×ROE + 0.3×F
-  
-  const gaComponent = 0.3 * ga;
-  const quiz2Component = 0.2 * quiz2;
+// BDM: T = GA + Qz2 + TimedAssignment + F (absolute marks: 10+20+20+50)
+function calculateBDM(ga: number, quiz2: number, timedAssignment: number, targetScore: number): number {
+  // F = T - GA - Qz2 - TimedAssignment
+  return targetScore - ga - quiz2 - timedAssignment;
+}
+
+// Business Analytics: T = Qz + A + F where Qz = 0.7*max + 0.3*min
+function calculateBA(quiz1: number, quiz2: number, a: number, targetScore: number): number {
+  const quizScore = 0.7 * Math.max(quiz1, quiz2) + 0.3 * Math.min(quiz1, quiz2);
+  // F = T - Qz - A
+  return targetScore - quizScore - a;
+}
+
+// Tools in DS: T = 0.1*GAA + 0.2*ROE + 0.2*P1 + 0.2*P2 + 0.3*F
+function calculateTDS(gaa: number, roe: number, p1: number, p2: number, targetScore: number): number {
+  const gaaComponent = 0.1 * gaa;
   const roeComponent = 0.2 * roe;
-  
-  // T = 0.3×GA + 0.20×Qz2 + 0.2×ROE + 0.3×F
-  // T - 0.3×GA - 0.20×Qz2 - 0.2×ROE = 0.3×F
-  // F = (T - 0.3×GA - 0.20×Qz2 - 0.2×ROE) / 0.3
-  
-  return (targetScore - gaComponent - quiz2Component - roeComponent) / 0.3;
-}
-
-/**
- * Calculate required final exam score for Business Analytics
- */
-function calculateBA(a: number, quiz: number, targetScore: number): number {
-  // T = 0.3×A + 0.2×Qz + 0.5×F
-  
-  const aComponent = 0.3 * a;
-  const quizComponent = 0.2 * quiz;
-  
-  // T = 0.3×A + 0.2×Qz + 0.5×F
-  // T - 0.3×A - 0.2×Qz = 0.5×F
-  // F = (T - 0.3×A - 0.2×Qz) / 0.5
-  
-  return (targetScore - aComponent - quizComponent) / 0.5;
-}
-
-/**
- * Calculate required final exam score for Tools in Data Science
- */
-function calculateTDS(gaa: number, roe1: number, p1: number, p2: number, targetScore: number): number {
-  // T = 0.15×GAA + 0.2×ROE1 + 0.2×P1 + 0.2×P2 + 0.25×F
-  
-  const gaaComponent = 0.15 * gaa;
-  const roe1Component = 0.2 * roe1;
   const p1Component = 0.2 * p1;
   const p2Component = 0.2 * p2;
-  
-  // T = 0.15×GAA + 0.2×ROE1 + 0.2×P1 + 0.2×P2 + 0.25×F
-  // T - 0.15×GAA - 0.2×ROE1 - 0.2×P1 - 0.2×P2 = 0.25×F
-  // F = (T - 0.15×GAA - 0.2×ROE1 - 0.2×P1 - 0.2×P2) / 0.25
-  
-  return (targetScore - gaaComponent - roe1Component - p1Component - p2Component) / 0.25;
+
+  // F = (T - 0.1*GAA - 0.2*ROE - 0.2*P1 - 0.2*P2) / 0.3
+  return (targetScore - gaaComponent - roeComponent - p1Component - p2Component) / 0.3;
 }
 
-/**
- * Calculate required final exam score for Programming Concepts Using Java
- */
-function calculateJAVA(gaa: number, quiz1: number, quiz2: number, oppe: number, targetScore: number): number {
-  // T = 0.1×GAA + 0.4×F + 0.2×OPPE + max(0.2×max(Qz1, Qz2), 0.15×Qz1 + 0.25×Qz2)
-  
-  const gaaComponent = 0.1 * gaa;
-  const oppeComponent = 0.2 * oppe;
-  
-  // Calculate the quiz component using max
-  const quizComponent1 = 0.2 * Math.max(quiz1, quiz2);
-  const quizComponent2 = 0.15 * quiz1 + 0.25 * quiz2;
-  const quizComponent = Math.max(quizComponent1, quizComponent2);
-  
-  // T = 0.1×GAA + 0.4×F + 0.2×OPPE + quizComponent
-  // T - 0.1×GAA - 0.2×OPPE - quizComponent = 0.4×F
-  // F = (T - 0.1×GAA - 0.2×OPPE - quizComponent) / 0.4
-  
-  return (targetScore - gaaComponent - oppeComponent - quizComponent) / 0.4;
-}
-
-/**
- * Calculate required final exam score for Database Management System
- */
-function calculateDBMS(gaa1: number, gaa2: number, gaa3: number, quiz1: number, quiz2: number, op: number, targetScore: number): number {
-  // T = 0.04×GAA1 + 0.03×GAA2 + 0.03×GAA3 + 0.2×OP + max(0.45×F + 0.15×max(Qz1, Qz2), 0.4×F + 0.10×Qz1 + 0.20×Qz2)
-  
-  const gaa1Component = 0.04 * gaa1;
-  const gaa2Component = 0.03 * gaa2;
-  const gaa3Component = 0.03 * gaa3;
+// PDSA: T = 0.05*GAA + 0.2*OP + 0.45*F + max(0.2*max(Qz1,Qz2), 0.1*Qz1 + 0.2*Qz2)
+function calculatePDSA(gaa: number, quiz1: number, quiz2: number, op: number, targetScore: number): number {
+  const gaaComponent = 0.05 * gaa;
   const opComponent = 0.2 * op;
   const maxQuiz = Math.max(quiz1, quiz2);
-  
-  // To solve for F, need to determine which max formula gives the lower required score
-  
-  // Formula 1: T = 0.04×GAA1 + 0.03×GAA2 + 0.03×GAA3 + 0.2×OP + 0.45×F + 0.15×max(Qz1, Qz2)
-  // T - 0.04×GAA1 - 0.03×GAA2 - 0.03×GAA3 - 0.2×OP - 0.15×max(Qz1, Qz2) = 0.45×F
-  // F = (T - 0.04×GAA1 - 0.03×GAA2 - 0.03×GAA3 - 0.2×OP - 0.15×max(Qz1, Qz2)) / 0.45
-  const formula1 = (targetScore - gaa1Component - gaa2Component - gaa3Component - opComponent - 0.15 * maxQuiz) / 0.45;
-  
-  // Formula 2: T = 0.04×GAA1 + 0.03×GAA2 + 0.03×GAA3 + 0.2×OP + 0.4×F + 0.10×Qz1 + 0.20×Qz2
-  // T - 0.04×GAA1 - 0.03×GAA2 - 0.03×GAA3 - 0.2×OP - 0.10×Qz1 - 0.20×Qz2 = 0.4×F
-  // F = (T - 0.04×GAA1 - 0.03×GAA2 - 0.03×GAA3 - 0.2×OP - 0.10×Qz1 - 0.20×Qz2) / 0.4
-  const formula2 = (targetScore - gaa1Component - gaa2Component - gaa3Component - opComponent - 0.10 * quiz1 - 0.20 * quiz2) / 0.4;
-  
-  return Math.min(formula1, formula2);
+
+  // Quiz option 1: 0.2*max(Qz1,Qz2), Quiz option 2: 0.1*Qz1 + 0.2*Qz2
+  const quizComponent = Math.max(0.2 * maxQuiz, 0.1 * quiz1 + 0.2 * quiz2);
+
+  // F = (T - 0.05*GAA - 0.2*OP - quizComponent) / 0.45
+  return (targetScore - gaaComponent - opComponent - quizComponent) / 0.45;
 }
 
-/**
- * Calculate required final exam score for Application Development courses (AD1 & AD2)
- */
-function calculateAD(gla: number, ga: number, quiz1: number, quiz2: number, targetScore: number): number {
-  // T = 0.15×GLA + 0.05×GA + max(0.35×F + 0.25×Qz1 + 0.3×Qz2, 0.4×F + 0.3×max(Qz1, Qz2))
-  
-  const glaComponent = 0.15 * gla;
-  const gaComponent = 0.05 * ga;
+// DBMS: T = 0.03*GAA2 + 0.02*GAA3 + 0.2*OP + 0.45*F + max(0.2*max(Qz1,Qz2), 0.1*Qz1 + 0.2*Qz2)
+function calculateDBMS(gaa2: number, gaa3: number, quiz1: number, quiz2: number, op: number, targetScore: number): number {
+  const gaa2Component = 0.03 * gaa2;
+  const gaa3Component = 0.02 * gaa3;
+  const opComponent = 0.2 * op;
   const maxQuiz = Math.max(quiz1, quiz2);
-  
-  // Formula 1: T = 0.15×GLA + 0.05×GA + 0.35×F + 0.25×Qz1 + 0.3×Qz2
-  // T - 0.15×GLA - 0.05×GA - 0.25×Qz1 - 0.3×Qz2 = 0.35×F
-  // F = (T - 0.15×GLA - 0.05×GA - 0.25×Qz1 - 0.3×Qz2) / 0.35
-  const formula1 = (targetScore - glaComponent - gaComponent - 0.25 * quiz1 - 0.3 * quiz2) / 0.35;
-  
-  // Formula 2: T = 0.15×GLA + 0.05×GA + 0.4×F + 0.3×max(Qz1, Qz2)
-  // T - 0.15×GLA - 0.05×GA - 0.3×max(Qz1, Qz2) = 0.4×F
-  // F = (T - 0.15×GLA - 0.05×GA - 0.3×max(Qz1, Qz2)) / 0.4
-  const formula2 = (targetScore - glaComponent - gaComponent - 0.3 * maxQuiz) / 0.4;
-  
+
+  const quizComponent = Math.max(0.2 * maxQuiz, 0.1 * quiz1 + 0.2 * quiz2);
+
+  // F = (T - 0.03*GAA2 - 0.02*GAA3 - 0.2*OP - quizComponent) / 0.45
+  return (targetScore - gaa2Component - gaa3Component - opComponent - quizComponent) / 0.45;
+}
+
+// App Dev 1: T = 0.05*GLA + max(0.6F + 0.25*max(Qz1,Qz2), 0.4F + 0.25*Qz1 + 0.3*Qz2)
+function calculateAppDev1(gla: number, quiz1: number, quiz2: number, targetScore: number): number {
+  const glaComponent = 0.05 * gla;
+  const maxQuiz = Math.max(quiz1, quiz2);
+
+  // Formula 1: F = (T - 0.05*GLA - 0.25*max(Qz1, Qz2)) / 0.6
+  const formula1 = (targetScore - glaComponent - 0.25 * maxQuiz) / 0.6;
+
+  // Formula 2: F = (T - 0.05*GLA - 0.25*Qz1 - 0.3*Qz2) / 0.4
+  const formula2 = (targetScore - glaComponent - 0.25 * quiz1 - 0.3 * quiz2) / 0.4;
+
   return Math.min(formula1, formula2);
 }
 
-/**
- * Calculate required final exam score for Programming Data Structures and Algorithms
- */
-function calculatePDSA(gaa1: number, gaa2: number, quiz1: number, pe1: number, pe2: number, targetScore: number): number {
-  // T = 0.1×GAA1 + 0.1×GAA2 + 0.1×Qz1 + 0.4×F + 0.25×max(PE1, PE2) + 0.15×min(PE1, PE2)
-  
-  const gaa1Component = 0.1 * gaa1;
-  const gaa2Component = 0.1 * gaa2;
-  const quiz1Component = 0.1 * quiz1;
-  const maxPE = Math.max(pe1, pe2);
-  const minPE = Math.min(pe1, pe2);
-  const peMaxComponent = 0.25 * maxPE;
-  const peMinComponent = 0.15 * minPE;
-  
-  // T = 0.1×GAA1 + 0.1×GAA2 + 0.1×Qz1 + 0.4×F + 0.25×max(PE1, PE2) + 0.15×min(PE1, PE2)
-  // T - 0.1×GAA1 - 0.1×GAA2 - 0.1×Qz1 - 0.25×max(PE1, PE2) - 0.15×min(PE1, PE2) = 0.4×F
-  // F = (T - 0.1×GAA1 - 0.1×GAA2 - 0.1×Qz1 - 0.25×max(PE1, PE2) - 0.15×min(PE1, PE2)) / 0.4
-  
-  return (targetScore - gaa1Component - gaa2Component - quiz1Component - peMaxComponent - peMinComponent) / 0.4;
+// Java: T = 0.05*GAA + 0.2*max(PE1,PE2) + 0.45*F + max(0.2*max(Qz1,Qz2), 0.1*Qz1 + 0.2*Qz2) + 0.1*min(PE1,PE2)
+function calculateJava(gaa: number, quiz1: number, quiz2: number, pe1: number, pe2: number, targetScore: number): number {
+  const gaaComponent = 0.05 * gaa;
+  const peMaxComponent = 0.2 * Math.max(pe1, pe2);
+  const peMinComponent = 0.1 * Math.min(pe1, pe2);
+  const maxQuiz = Math.max(quiz1, quiz2);
+
+  const quizComponent = Math.max(0.2 * maxQuiz, 0.1 * quiz1 + 0.2 * quiz2);
+
+  // F = (T - 0.05*GAA - 0.2*max(PE1,PE2) - quizComponent - 0.1*min(PE1,PE2)) / 0.45
+  return (targetScore - gaaComponent - peMaxComponent - quizComponent - peMinComponent) / 0.45;
 }
 
-/**
- * Calculate required final exam score for System Commands
- */
-function calculateSC(gaa: number, bpt: number, oppe: number, targetScore: number): number {
-  // T = 0.1×GAA + 0.4×F + 0.3×OPPE + 0.2×BPT
-  
-  const gaaComponent = 0.1 * gaa;
-  const bptComponent = 0.2 * bpt;
+// System Commands: T = 0.05*GAA + 0.25*Qz1 + 0.3*OPPE + 0.3*F + 0.1*BPTA
+function calculateSystemCommands(gaa: number, quiz1: number, bpta: number, oppe: number, targetScore: number): number {
+  const gaaComponent = 0.05 * gaa;
+  const quiz1Component = 0.25 * quiz1;
+  const bptaComponent = 0.1 * bpta;
   const oppeComponent = 0.3 * oppe;
-  
-  // T = 0.1×GAA + 0.4×F + 0.3×OPPE + 0.2×BPT
-  // T - 0.1×GAA - 0.3×OPPE - 0.2×BPT = 0.4×F
-  // F = (T - 0.1×GAA - 0.3×OPPE - 0.2×BPT) / 0.4
-  
-  return (targetScore - gaaComponent - oppeComponent - bptComponent) / 0.4;
+
+  // F = (T - 0.05*GAA - 0.25*Qz1 - 0.3*OPPE - 0.1*BPTA) / 0.3
+  return (targetScore - gaaComponent - quiz1Component - oppeComponent - bptaComponent) / 0.3;
+}
+
+// App Dev 2: T = 0.05*GAA + max(0.6F + 0.25*max(Qz1,Qz2), 0.4F + 0.25*Qz1 + 0.3*Qz2)
+function calculateAppDev2(gaa: number, quiz1: number, quiz2: number, targetScore: number): number {
+  const gaaComponent = 0.05 * gaa;
+  const maxQuiz = Math.max(quiz1, quiz2);
+
+  // Formula 1: F = (T - 0.05*GAA - 0.25*max(Qz1, Qz2)) / 0.6
+  const formula1 = (targetScore - gaaComponent - 0.25 * maxQuiz) / 0.6;
+
+  // Formula 2: F = (T - 0.05*GAA - 0.25*Qz1 - 0.3*Qz2) / 0.4
+  const formula2 = (targetScore - gaaComponent - 0.25 * quiz1 - 0.3 * quiz2) / 0.4;
+
+  return Math.min(formula1, formula2);
+}
+
+// DL GenAI: T = 0.1*GAA + 0.2*Qz1 + 0.2*Qz2 + 0.25*F + 0.1*NPPE1 + 0.15*NPPE2
+function calculateDLGenAI(gaa: number, quiz1: number, quiz2: number, nppe1: number, nppe2: number, targetScore: number): number {
+  const gaaComponent = 0.1 * gaa;
+  const quiz1Component = 0.2 * quiz1;
+  const quiz2Component = 0.2 * quiz2;
+  const nppe1Component = 0.1 * nppe1;
+  const nppe2Component = 0.15 * nppe2;
+
+  // F = (T - 0.1*GAA - 0.2*Qz1 - 0.2*Qz2 - 0.1*NPPE1 - 0.15*NPPE2) / 0.25
+  return (targetScore - gaaComponent - quiz1Component - quiz2Component - nppe1Component - nppe2Component) / 0.25;
 }
 
 /**
@@ -379,135 +282,86 @@ function calculateSC(gaa: number, bpt: number, oppe: number, targetScore: number
  */
 export function calculatePredictions(input: DiplomaPredictorInput): PredictionResult[] {
   const { subject } = input;
-  
-  // Check eligibility
-  const eligibility = checkEligibility(input);
-  if (!eligibility.eligible) {
-    return gradeThresholds.map(grade => ({
-      grade: grade.grade,
-      required: 0,
-      achievable: false
-    }));
-  }
-  
-  // Calculate required score for each grade
+
   return gradeThresholds.map(grade => {
-    const targetScore = grade.min; // Target the minimum score needed for this grade
+    const targetScore = grade.min;
     let requiredFinalScore = 0;
-    
-    // Call the appropriate calculation function based on subject
+
     switch (subject) {
       case 'MLF':
-        requiredFinalScore = calculateMLF(
-          input.gaa || 0,
-          input.quiz1 || 0,
-          input.quiz2 || 0,
-          targetScore
+        requiredFinalScore = calculateMLFoundations(
+          input.gaa || 0, input.quiz1 || 0, input.quiz2 || 0, targetScore
         );
         break;
       case 'MLT':
-        requiredFinalScore = calculateMLT(
-          input.gaa || 0,
-          input.quiz1 || 0,
-          input.quiz2 || 0,
-          targetScore
+        requiredFinalScore = calculateMLTechniques(
+          input.gaa || 0, input.quiz1 || 0, input.quiz2 || 0, targetScore
         );
         break;
       case 'MLP':
-        requiredFinalScore = calculateMLP(
-          input.gaa || 0,
-          input.quiz1 || 0,
-          input.ope1 || 0,
-          input.ope2 || 0,
-          input.npe1 || 0,
-          input.npe2 || 0,
-          targetScore
+        requiredFinalScore = calculateMLPractice(
+          input.gaa || 0, input.oppe1 || 0, input.oppe2 || 0, input.ka || 0, targetScore
         );
         break;
       case 'BDM':
         requiredFinalScore = calculateBDM(
-          input.ga || 0,
-          input.quiz2 || 0,
-          input.roe || 0,
-          targetScore
+          input.ga || 0, input.quiz2 || 0, input.timedAssignment || 0, targetScore
         );
         break;
       case 'BA':
         requiredFinalScore = calculateBA(
-          input.a || 0,
-          input.quiz || 0,
-          targetScore
+          input.quiz1 || 0, input.quiz2 || 0, input.a || 0, targetScore
         );
         break;
       case 'TDS':
         requiredFinalScore = calculateTDS(
-          input.gaa || 0,
-          input.roe1 || 0,
-          input.p1 || 0,
-          input.p2 || 0,
-          targetScore
-        );
-        break;
-      case 'JAVA':
-        requiredFinalScore = calculateJAVA(
-          input.gaa || 0,
-          input.quiz1 || 0,
-          input.quiz2 || 0,
-          input.oppe || 0,
-          targetScore
-        );
-        break;
-      case 'DBMS':
-        requiredFinalScore = calculateDBMS(
-          input.gaa1 || 0,
-          input.gaa2 || 0,
-          input.gaa3 || 0,
-          input.quiz1 || 0,
-          input.quiz2 || 0,
-          input.op || 0,
-          targetScore
-        );
-        break;
-      case 'AD1':
-      case 'AD2':
-        requiredFinalScore = calculateAD(
-          input.gla || 0,
-          input.ga || 0,
-          input.quiz1 || 0,
-          input.quiz2 || 0,
-          targetScore
+          input.gaa || 0, input.roe || 0, input.p1 || 0, input.p2 || 0, targetScore
         );
         break;
       case 'PDSA':
         requiredFinalScore = calculatePDSA(
-          input.gaa1 || 0,
-          input.gaa2 || 0,
-          input.quiz1 || 0,
-          input.pe1 || 0,
-          input.pe2 || 0,
-          targetScore
+          input.gaa || 0, input.quiz1 || 0, input.quiz2 || 0, input.op || 0, targetScore
+        );
+        break;
+      case 'DBMS':
+        requiredFinalScore = calculateDBMS(
+          input.gaa2 || 0, input.gaa3 || 0, input.quiz1 || 0, input.quiz2 || 0, input.op || 0, targetScore
+        );
+        break;
+      case 'AD1':
+        requiredFinalScore = calculateAppDev1(
+          input.gla || 0, input.quiz1 || 0, input.quiz2 || 0, targetScore
+        );
+        break;
+      case 'JAVA':
+        requiredFinalScore = calculateJava(
+          input.gaa || 0, input.quiz1 || 0, input.quiz2 || 0, input.pe1 || 0, input.pe2 || 0, targetScore
         );
         break;
       case 'SC':
-        requiredFinalScore = calculateSC(
-          input.gaa || 0,
-          input.bpt || 0,
-          input.oppe || 0,
-          targetScore
+        requiredFinalScore = calculateSystemCommands(
+          input.gaa || 0, input.quiz1 || 0, input.bpta || 0, input.oppe || 0, targetScore
+        );
+        break;
+      case 'AD2':
+        requiredFinalScore = calculateAppDev2(
+          input.gaa || 0, input.quiz1 || 0, input.quiz2 || 0, targetScore
+        );
+        break;
+      case 'DLDG':
+        requiredFinalScore = calculateDLGenAI(
+          input.gaa || 0, input.quiz1 || 0, input.quiz2 || 0, input.nppe1 || 0, input.nppe2 || 0, targetScore
         );
         break;
     }
-    
-    // Round to nearest integer and cap between 0 and 100
+
     const finalScore = Math.max(0, Math.min(100, Math.round(requiredFinalScore)));
-    
-    // Check if the required score is achievable (less than or equal to 100)
     const achievable = requiredFinalScore <= 100;
-    
+
     return {
       grade: grade.grade,
       required: finalScore,
       achievable
     };
   });
-} 
+}

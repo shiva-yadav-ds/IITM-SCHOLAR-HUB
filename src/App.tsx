@@ -20,6 +20,7 @@ const RoadmapListing = lazy(() => import("./pages/RoadmapListing"));
 const RoadmapDetail = lazy(() => import("./pages/RoadmapDetail"));
 const AiAssistant = lazy(() => import("./pages/AiAssistant"));
 
+
 // Loading fallback component - should be lightweight
 const PageLoader = () => (
   <div className="flex items-center justify-center w-full h-screen bg-background">
@@ -110,6 +111,7 @@ const App = () => {
                 <Route path="/roadmaps" element={<RoadmapListing />} />
                 <Route path="/roadmaps/:id" element={<RoadmapDetail />} />
                 <Route path="/python-cheatsheet" element={<PythonCheatsheet />} />
+
                 <Route path="/ai-assistant" element={<AiAssistant />} />
                 <Route path="*" element={<NotFound />} />
               </Routes>

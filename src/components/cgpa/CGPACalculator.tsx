@@ -33,12 +33,14 @@ import {
   getCoursesByLevel,
   calculateCGPA,
   calculateLevelCGPA,
+  calculateCombinedCGPA,
   isPassingGrade,
   getAvailableLevels,
   levelDisplayNames,
   levelDescriptions,
   generateId,
   CGPAResult,
+  LEVEL_CREDITS,
 } from '@/lib/cgpa';
 
 // Storage keys
@@ -47,7 +49,12 @@ const STORAGE_KEYS = {
   COURSE_ENTRIES: 'cgpaCalculator.courseEntries',
   CURRENT_STEP: 'cgpaCalculator.currentStep',
   SHOW_NPTEL: 'cgpaCalculator.showNptel',
+  CALCULATION_MODE: 'cgpaCalculator.calculationMode',
+  PREVIOUS_CGPA: 'cgpaCalculator.previousCGPA',
 };
+
+// Calculation mode type
+export type CalculationMode = 'level_only' | 'combined';
 
 // Grade options for dropdown
 const gradeOptions: { value: Grade; label: string; points: number }[] = [
@@ -74,6 +81,18 @@ export default function CGPACalculator() {
   const [currentStep, setCurrentStep] = useState(1);
   const [showNptel, setShowNptel] = useState(false);
   const [selectedCourse, setSelectedCourse] = useState<string>('');
+  const [calculationMode, setCalculationMode] = useState<CalculationMode>('level_only');
+  const [previousLevelCGPA, setPreviousLevelCGPA] = useState<string>('');
+
+  // Get previous level info
+  const getPreviousLevel = useCallback((level: ProgramLevel): ProgramLevel | null => {
+    switch (level) {
+      case 'diploma': return 'foundation';
+      case 'bsc': return 'diploma';
+      case 'bs': return 'bsc';
+      default: return null;
+    }
+  }, []);
 
   // Load from localStorage on mount
   useEffect(() => {
@@ -101,6 +120,16 @@ export default function CGPACalculator() {
       if (savedShowNptel) {
         setShowNptel(savedShowNptel === 'true');
       }
+
+      const savedMode = localStorage.getItem(STORAGE_KEYS.CALCULATION_MODE);
+      if (savedMode) {
+        setCalculationMode(savedMode as CalculationMode);
+      }
+
+      const savedPrevCGPA = localStorage.getItem(STORAGE_KEYS.PREVIOUS_CGPA);
+      if (savedPrevCGPA) {
+        setPreviousLevelCGPA(savedPrevCGPA);
+      }
     }
   }, []);
 
@@ -123,10 +152,22 @@ export default function CGPACalculator() {
     localStorage.setItem(STORAGE_KEYS.SHOW_NPTEL, showNptel.toString());
   }, [showNptel]);
 
-  // Get available courses based on program level
+  useEffect(() => {
+    localStorage.setItem(STORAGE_KEYS.CALCULATION_MODE, calculationMode);
+  }, [calculationMode]);
+
+  useEffect(() => {
+    localStorage.setItem(STORAGE_KEYS.PREVIOUS_CGPA, previousLevelCGPA);
+  }, [previousLevelCGPA]);
+
+  // Get available courses - only current level for diploma+ in level_only mode
   const availableCourses = useMemo(() => {
     if (!programLevel) return [];
-    return getCoursesForLevel(programLevel);
+    if (programLevel === 'foundation') {
+      return getCoursesByLevel('foundation');
+    }
+    // For diploma and above, only show current level courses (not foundation)
+    return getCoursesByLevel(programLevel);
   }, [programLevel]);
 
   // Get courses not yet added
@@ -141,17 +182,31 @@ export default function CGPACalculator() {
     return codes.length !== new Set(codes).size;
   }, [courseEntries]);
 
-  // Calculate overall CGPA
-  const overallResult = useMemo(() => calculateCGPA(courseEntries), [courseEntries]);
+  // Calculate overall CGPA (with combined mode support)
+  const overallResult = useMemo(() => {
+    if (!programLevel) return { cgpa: 0, percentage: 0, totalCredits: 0, coursesCount: 0 };
+
+    // For foundation or level_only mode, just calculate current level CGPA
+    if (programLevel === 'foundation' || calculationMode === 'level_only') {
+      return calculateCGPA(courseEntries);
+    }
+
+    // For combined mode, use direct CGPA from previous level
+    const prevLevel = getPreviousLevel(programLevel);
+    const prevCGPANum = parseFloat(previousLevelCGPA) || 0;
+    const prevCredits = prevLevel ? LEVEL_CREDITS[prevLevel] : 0;
+
+    return calculateCombinedCGPA(prevCGPANum, prevCredits, courseEntries);
+  }, [courseEntries, programLevel, calculationMode, previousLevelCGPA, getPreviousLevel]);
 
   // Calculate level-wise CGPAs
   const levelResults = useMemo(() => {
     if (!programLevel) return {};
-    const levels = getAvailableLevels(programLevel);
     const results: Record<ProgramLevel, CGPAResult> = {} as any;
-    levels.forEach(level => {
-      results[level] = calculateLevelCGPA(courseEntries, level);
-    });
+
+    // Only calculate for current level (not foundation for diploma+)
+    results[programLevel] = calculateCGPA(courseEntries);
+
     return results;
   }, [courseEntries, programLevel]);
 
@@ -160,6 +215,8 @@ export default function CGPACalculator() {
     setProgramLevel(level);
     // Clear courses when changing level
     setCourseEntries([]);
+    setCalculationMode('level_only');
+    setPreviousLevelCGPA('');
     setCurrentStep(2);
   }, []);
 
@@ -221,10 +278,14 @@ export default function CGPACalculator() {
     setCurrentStep(1);
     setShowNptel(false);
     setSelectedCourse('');
+    setCalculationMode('level_only');
+    setPreviousLevelCGPA('');
     localStorage.removeItem(STORAGE_KEYS.PROGRAM_LEVEL);
     localStorage.removeItem(STORAGE_KEYS.COURSE_ENTRIES);
     localStorage.removeItem(STORAGE_KEYS.CURRENT_STEP);
     localStorage.removeItem(STORAGE_KEYS.SHOW_NPTEL);
+    localStorage.removeItem(STORAGE_KEYS.CALCULATION_MODE);
+    localStorage.removeItem(STORAGE_KEYS.PREVIOUS_CGPA);
   }, []);
 
   // Get grade color
@@ -249,8 +310,8 @@ export default function CGPACalculator() {
           <div key={step.id} className="flex items-center flex-1">
             <div
               className={`flex items-center justify-center w-10 h-10 rounded-full border-2 transition-all ${currentStep >= step.id
-                  ? 'bg-blue-600 border-blue-600 text-white'
-                  : 'border-gray-600 text-gray-500'
+                ? 'bg-blue-600 border-blue-600 text-white'
+                : 'border-gray-600 text-gray-500'
                 }`}
             >
               {currentStep > step.id ? (
@@ -291,8 +352,8 @@ export default function CGPACalculator() {
             <Card
               key={level}
               className={`cursor-pointer transition-all hover:border-blue-500/50 ${programLevel === level
-                  ? 'border-blue-500 bg-blue-500/10'
-                  : 'border-gray-700 bg-gray-800/50'
+                ? 'border-blue-500 bg-blue-500/10'
+                : 'border-gray-700 bg-gray-800/50'
                 }`}
               onClick={() => handleLevelSelect(level)}
             >
@@ -314,168 +375,212 @@ export default function CGPACalculator() {
     </Card>
   );
 
-  // Render Step 2: Course Entry
+  // Render Step 2: Course Entry - Improved Mobile-Friendly Version
   const renderCourseEntry = () => {
     if (!programLevel) return null;
 
-    const levels = getAvailableLevels(programLevel);
+    const prevLevel = getPreviousLevel(programLevel);
+    const showModeSelection = programLevel !== 'foundation';
+
+    // Short grade labels for mobile buttons
+    const shortGrades = ['S', 'A', 'B', 'C', 'D', 'E'];
+
+    // Quick add all courses at once
+    const handleQuickAddAll = () => {
+      const newEntries: CourseEntry[] = availableCourses
+        .filter(c => !courseEntries.find(e => e.course.code === c.code))
+        .map(course => ({
+          id: generateId(),
+          course,
+          grade: '' as Grade,
+          includeInCGPA: true,
+        }));
+      setCourseEntries(prev => [...prev, ...newEntries]);
+    };
+
+    // Quick grade set for a course (add if not exists, update if exists)
+    const handleQuickGrade = (course: CourseData, grade: Grade) => {
+      const existing = courseEntries.find(e => e.course.code === course.code);
+      if (existing) {
+        handleGradeChange(existing.id, grade);
+      } else {
+        const newEntry: CourseEntry = {
+          id: generateId(),
+          course,
+          grade,
+          includeInCGPA: true,
+        };
+        setCourseEntries(prev => [...prev, newEntry]);
+      }
+    };
+
+    // Get grade for a course
+    const getGradeForCourse = (code: string): Grade => {
+      const entry = courseEntries.find(e => e.course.code === code);
+      return entry?.grade || '' as Grade;
+    };
 
     return (
       <Card className="bg-gradient-to-br from-gray-900/80 to-gray-800/80 border-gray-700">
-        <CardHeader>
-          <div className="flex items-center justify-between">
+        <CardHeader className="pb-3">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
             <div>
-              <CardTitle className="flex items-center gap-2">
-                <BookOpen className="w-6 h-6 text-blue-500" />
-                Step 2: Add Your Courses
+              <CardTitle className="flex items-center gap-2 text-lg sm:text-xl">
+                <BookOpen className="w-5 h-5 sm:w-6 sm:h-6 text-blue-500" />
+                Select Grades
               </CardTitle>
-              <CardDescription>
-                Add courses you have completed with grades (S-E only)
+              <CardDescription className="text-xs sm:text-sm">
+                Tap a grade for each course you completed
               </CardDescription>
             </div>
-            <Badge variant="outline" className="text-blue-400 border-blue-400">
+            <Badge variant="outline" className="text-blue-400 border-blue-400 w-fit">
               {levelDisplayNames[programLevel]}
             </Badge>
           </div>
         </CardHeader>
-        <CardContent className="space-y-6">
-          {/* Add Course Section */}
-          <div className="flex flex-col sm:flex-row gap-3">
-            <div className="flex-1">
-              <Select value={selectedCourse} onValueChange={setSelectedCourse}>
-                <SelectTrigger className="bg-gray-900/80 border-gray-700">
-                  <SelectValue placeholder="Select a course to add" />
-                </SelectTrigger>
-                <SelectContent className="bg-gray-900 border-gray-700 max-h-[300px]">
-                  {levels.map(level => (
-                    <div key={level}>
-                      <div className="px-2 py-1.5 text-xs font-semibold text-gray-400 bg-gray-800">
-                        {levelDisplayNames[level]}
-                      </div>
-                      {getCoursesByLevel(level)
-                        .filter(c => !courseEntries.find(e => e.course.code === c.code))
-                        .map(course => (
-                          <SelectItem key={course.code} value={course.code}>
-                            {course.name} ({course.credits} credits)
-                          </SelectItem>
-                        ))}
-                    </div>
-                  ))}
-                </SelectContent>
-              </Select>
+        <CardContent className="space-y-4 pt-0">
+          {/* Mode Selection for non-Foundation levels - Compact */}
+          {showModeSelection && (
+            <div className="bg-gray-800/50 rounded-lg p-3 border border-gray-700">
+              <div className="flex flex-wrap gap-2 mb-2">
+                <Button
+                  variant={calculationMode === 'level_only' ? 'default' : 'outline'}
+                  size="sm"
+                  onClick={() => setCalculationMode('level_only')}
+                  className={calculationMode === 'level_only' ? 'bg-blue-600' : 'border-gray-600'}
+                >
+                  {levelDisplayNames[programLevel]} Only
+                </Button>
+                <Button
+                  variant={calculationMode === 'combined' ? 'default' : 'outline'}
+                  size="sm"
+                  onClick={() => setCalculationMode('combined')}
+                  className={calculationMode === 'combined' ? 'bg-blue-600' : 'border-gray-600'}
+                >
+                  + {prevLevel && levelDisplayNames[prevLevel]} CGPA
+                </Button>
+              </div>
+
+              {/* Previous Level CGPA Input */}
+              {calculationMode === 'combined' && prevLevel && (
+                <div className="flex items-center gap-2 mt-2">
+                  <Label htmlFor="prevCGPA" className="text-xs whitespace-nowrap">
+                    {levelDisplayNames[prevLevel]} CGPA:
+                  </Label>
+                  <input
+                    id="prevCGPA"
+                    type="number"
+                    min="0"
+                    max="10"
+                    step="0.01"
+                    placeholder="e.g., 8.5"
+                    value={previousLevelCGPA}
+                    onChange={(e) => setPreviousLevelCGPA(e.target.value)}
+                    className="w-20 bg-gray-900 border border-gray-700 rounded px-2 py-1 text-sm text-white placeholder-gray-500 focus:border-blue-500 focus:outline-none"
+                  />
+                  <span className="text-gray-400 text-xs">({LEVEL_CREDITS[prevLevel]} credits)</span>
+                </div>
+              )}
             </div>
-            <Button
-              onClick={handleAddCourse}
-              disabled={!selectedCourse}
-              className="bg-blue-600 hover:bg-blue-700"
-            >
-              <Plus className="w-4 h-4 mr-2" />
-              Add Course
-            </Button>
+          )}
+
+          {/* Live CGPA Display */}
+          {courseEntries.some(e => e.grade && e.grade !== 'U') && (
+            <div className="bg-gradient-to-r from-blue-900/30 to-purple-900/30 rounded-lg p-3 border border-blue-700/30">
+              <div className="flex items-center justify-between">
+                <span className="text-sm text-gray-300">Current CGPA:</span>
+                <span className="text-2xl font-bold text-white">{overallResult.cgpa.toFixed(2)}</span>
+              </div>
+              <div className="flex gap-3 text-xs text-gray-400 mt-1">
+                <span>{overallResult.totalCredits} credits</span>
+                <span>•</span>
+                <span>{overallResult.coursesCount} courses</span>
+              </div>
+            </div>
+          )}
+
+          {/* All Courses List with Quick Grade Buttons */}
+          <div className="space-y-2">
+            <div className="flex items-center justify-between">
+              <Label className="text-sm font-medium text-gray-300">
+                {levelDisplayNames[programLevel]} Courses
+              </Label>
+              <span className="text-xs text-gray-500">
+                {courseEntries.filter(e => e.grade && e.grade !== '').length}/{availableCourses.length} graded
+              </span>
+            </div>
+
+            <div className="space-y-1">
+              {availableCourses.map(course => {
+                const currentGrade = getGradeForCourse(course.code);
+                return (
+                  <div
+                    key={course.code}
+                    className={`rounded-lg border p-2 sm:p-3 transition-all ${currentGrade && currentGrade !== 'U'
+                      ? 'bg-blue-900/20 border-blue-700/50'
+                      : 'bg-gray-800/30 border-gray-700/50'
+                      }`}
+                  >
+                    <div className="flex flex-col sm:flex-row sm:items-center gap-2">
+                      {/* Course Name */}
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-medium truncate">{course.name}</p>
+                        <p className="text-xs text-gray-500">{course.credits} credits</p>
+                      </div>
+
+                      {/* Grade Buttons - Horizontal scroll on mobile */}
+                      <div className="flex gap-1 overflow-x-auto pb-1 sm:pb-0">
+                        {shortGrades.map(grade => (
+                          <button
+                            key={grade}
+                            onClick={() => handleQuickGrade(course, grade as Grade)}
+                            className={`min-w-[32px] h-8 rounded text-xs font-bold transition-all ${currentGrade === grade
+                              ? grade === 'S' ? 'bg-emerald-500 text-white'
+                                : grade === 'A' ? 'bg-green-500 text-white'
+                                  : grade === 'B' ? 'bg-blue-500 text-white'
+                                    : grade === 'C' ? 'bg-yellow-500 text-black'
+                                      : grade === 'D' ? 'bg-orange-500 text-white'
+                                        : 'bg-amber-600 text-white'
+                              : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+                              }`}
+                          >
+                            {grade}
+                          </button>
+                        ))}
+                        {currentGrade && (
+                          <button
+                            onClick={() => handleRemoveCourse(courseEntries.find(e => e.course.code === course.code)?.id || '')}
+                            className="min-w-[32px] h-8 rounded text-xs bg-red-900/50 text-red-400 hover:bg-red-800/50"
+                            title="Clear"
+                          >
+                            ✕
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
           </div>
 
-          {hasDuplicates && (
-            <div className="flex items-center gap-2 text-yellow-500 bg-yellow-500/10 p-3 rounded-lg">
-              <AlertCircle className="w-5 h-5" />
-              <span>Warning: Duplicate courses detected</span>
-            </div>
-          )}
-
-          {/* Course List by Level */}
-          {levels.map(level => {
-            const levelEntries = courseEntries.filter(e => e.course.level === level);
-            if (levelEntries.length === 0) return null;
-
-            return (
-              <div key={level} className="space-y-3">
-                <div className="flex items-center gap-2">
-                  <Badge className="bg-gray-700">{levelDisplayNames[level]}</Badge>
-                  <span className="text-sm text-gray-400">
-                    {levelEntries.length} course(s)
-                  </span>
-                </div>
-                <div className="space-y-2">
-                  {levelEntries.map(entry => (
-                    <div
-                      key={entry.id}
-                      className="flex flex-col sm:flex-row sm:items-center gap-3 p-3 bg-gray-800/50 rounded-lg border border-gray-700"
-                    >
-                      <div className="flex-1 min-w-0">
-                        <p className="font-medium truncate">{entry.course.name}</p>
-                        <p className="text-sm text-gray-400">{entry.course.credits} credits</p>
-                      </div>
-                      <div className="flex items-center gap-3">
-                        <Select
-                          value={entry.grade}
-                          onValueChange={(v) => handleGradeChange(entry.id, v as Grade)}
-                        >
-                          <SelectTrigger className={`w-32 bg-gray-900 border-gray-700 ${getGradeColor(entry.grade)}`}>
-                            <SelectValue placeholder="Grade" />
-                          </SelectTrigger>
-                          <SelectContent className="bg-gray-900 border-gray-700">
-                            {gradeOptions.map(opt => (
-                              <SelectItem key={opt.value} value={opt.value}>
-                                {opt.label}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                        <div className="flex items-center gap-2">
-                          <Checkbox
-                            id={`include-${entry.id}`}
-                            checked={entry.includeInCGPA}
-                            onCheckedChange={(checked) =>
-                              handleIncludeToggle(entry.id, checked as boolean)
-                            }
-                            disabled={entry.grade === 'U'}
-                          />
-                          <Label
-                            htmlFor={`include-${entry.id}`}
-                            className="text-sm text-gray-400"
-                          >
-                            Include
-                          </Label>
-                        </div>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          onClick={() => handleRemoveCourse(entry.id)}
-                          className="text-red-400 hover:text-red-300 hover:bg-red-500/10"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </Button>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            );
-          })}
-
-          {courseEntries.length === 0 && (
-            <div className="text-center py-8 text-gray-400">
-              <BookOpen className="w-12 h-12 mx-auto mb-3 opacity-50" />
-              <p>No courses added yet</p>
-              <p className="text-sm">Select a course from the dropdown above</p>
-            </div>
-          )}
-
           {/* Navigation */}
-          <div className="flex justify-between pt-4">
+          <div className="flex justify-between pt-2 border-t border-gray-700/50">
             <Button
               variant="outline"
+              size="sm"
               onClick={() => setCurrentStep(1)}
               className="border-gray-700"
             >
-              Back
+              ← Back
             </Button>
             <Button
               onClick={() => setCurrentStep(3)}
-              disabled={courseEntries.length === 0}
+              disabled={!courseEntries.some(e => e.grade && e.grade !== '' && e.grade !== 'U')}
+              size="sm"
               className="bg-blue-600 hover:bg-blue-700"
             >
-              View Results
-              <ChevronRight className="w-4 h-4 ml-2" />
+              View Results →
             </Button>
           </div>
         </CardContent>
