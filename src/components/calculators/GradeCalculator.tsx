@@ -25,7 +25,9 @@ import {
 
 import {
   DiplomaParams,
+  DiplomaScoreResult,
   calculateDiplomaTotal,
+  calculateDiplomaScores,
   calculateDiplomaCGPA,
   diplomaSubjects,
   getSubjectDetails as getDiplomaSubjectDetails
@@ -33,7 +35,9 @@ import {
 
 import {
   DegreeParams,
+  DegreeScoreResult,
   calculateDegreeTotal,
+  calculateDegreeScores,
   calculateDegreeCGPA,
   degreeSubjects,
   getSubjectDetails as getDegreeSubjectDetails
@@ -150,6 +154,10 @@ export default function GradeCalculator() {
 
   // State to store score breakdown for foundation courses (with and without normal bonus)
   const [foundationScoreBreakdowns, setFoundationScoreBreakdowns] = useState<Map<number, FoundationScoreResult>>(new Map());
+  // State to store score breakdown for diploma courses (actual vs +2%)
+  const [diplomaScoreBreakdowns, setDiplomaScoreBreakdowns] = useState<Map<number, DiplomaScoreResult>>(new Map());
+  // State to store score breakdown for degree courses (actual vs +2%)
+  const [degreeScoreBreakdowns, setDegreeScoreBreakdowns] = useState<Map<number, DegreeScoreResult>>(new Map());
 
   // Load data from localStorage on initial mount
   useEffect(() => {
@@ -338,7 +346,10 @@ export default function GradeCalculator() {
       params[field] = typeof value === 'number' ? value : parseFloat(value as string) || 0;
     });
 
-    const totalScore = calculateDiplomaTotal(params);
+    // Calculate scores with dual display (actual vs +2%)
+    const scoreResult = calculateDiplomaScores(params);
+    // Use finalScore (+2%) for grade calculation
+    const totalScore = scoreResult.finalScore;
     const { grade, gradePoint } = calculateGradeAndPoints(totalScore);
 
     const newCourse: CourseGrade = {
@@ -352,6 +363,11 @@ export default function GradeCalculator() {
 
     const updatedCourses = [...diplomaCourses, newCourse];
     setDiplomaCourses(updatedCourses);
+
+    // Store the score breakdown for this course index
+    const newBreakdowns = new Map(diplomaScoreBreakdowns);
+    newBreakdowns.set(updatedCourses.length - 1, scoreResult);
+    setDiplomaScoreBreakdowns(newBreakdowns);
 
     // Save to localStorage
     saveCourses('diploma', updatedCourses);
@@ -382,7 +398,10 @@ export default function GradeCalculator() {
       params[field] = typeof value === 'number' ? value : parseFloat(value as string) || 0;
     });
 
-    const totalScore = calculateDegreeTotal(params);
+    // Calculate scores with dual display (actual vs +2%)
+    const scoreResult = calculateDegreeScores(params);
+    // Use finalScore (+2%) for grade calculation
+    const totalScore = scoreResult.finalScore;
     const { grade, gradePoint } = calculateGradeAndPoints(totalScore);
 
     const newCourse: CourseGrade = {
@@ -396,6 +415,11 @@ export default function GradeCalculator() {
 
     const updatedCourses = [...degreeCourses, newCourse];
     setDegreeCourses(updatedCourses);
+
+    // Store the score breakdown for this course index
+    const newBreakdowns = new Map(degreeScoreBreakdowns);
+    newBreakdowns.set(updatedCourses.length - 1, scoreResult);
+    setDegreeScoreBreakdowns(newBreakdowns);
 
     // Save to localStorage
     saveCourses('degree', updatedCourses);
@@ -433,6 +457,17 @@ export default function GradeCalculator() {
       const updatedCourses = diplomaCourses.filter((_, i) => i !== index);
       setDiplomaCourses(updatedCourses);
 
+      // Update score breakdowns - shift indices for remaining courses
+      const newBreakdowns = new Map<number, DiplomaScoreResult>();
+      diplomaScoreBreakdowns.forEach((value, key) => {
+        if (key < index) {
+          newBreakdowns.set(key, value);
+        } else if (key > index) {
+          newBreakdowns.set(key - 1, value);
+        }
+      });
+      setDiplomaScoreBreakdowns(newBreakdowns);
+
       // Save to localStorage
       saveCourses('diploma', updatedCourses);
 
@@ -442,6 +477,17 @@ export default function GradeCalculator() {
     } else {
       const updatedCourses = degreeCourses.filter((_, i) => i !== index);
       setDegreeCourses(updatedCourses);
+
+      // Update score breakdowns - shift indices for remaining courses
+      const newBreakdowns = new Map<number, DegreeScoreResult>();
+      degreeScoreBreakdowns.forEach((value, key) => {
+        if (key < index) {
+          newBreakdowns.set(key, value);
+        } else if (key > index) {
+          newBreakdowns.set(key - 1, value);
+        }
+      });
+      setDegreeScoreBreakdowns(newBreakdowns);
 
       // Save to localStorage
       saveCourses('degree', updatedCourses);
@@ -565,74 +611,130 @@ export default function GradeCalculator() {
         <div className="text-center py-12 text-gray-500">
           <Award className="w-12 h-12 mx-auto mb-4 text-gray-400" />
           <h3 className="text-lg font-medium">No courses added yet</h3>
-          <p className="mt-2">Add a course above to calculate your CGPA</p>
+          <p className="mt-2 text-sm">Add a course above to calculate your CGPA</p>
         </div>
       );
     }
 
     return (
       <>
-        <div className="overflow-x-auto">
-          <table className="w-full">
-            <thead className="bg-gray-700/30">
+        {/* Mobile Card Layout */}
+        <div className="block sm:hidden space-y-3">
+          {courses.map((course, index) => {
+            const scoreBreakdown = level === 'foundation'
+              ? foundationScoreBreakdowns.get(index)
+              : level === 'diploma'
+                ? diplomaScoreBreakdowns.get(index)
+                : degreeScoreBreakdowns.get(index);
+
+            return (
+              <div key={index} className="bg-gray-800/50 rounded-xl p-4 border border-gray-700/50">
+                <div className="flex justify-between items-start mb-3">
+                  <div className="flex-1 min-w-0">
+                    <h4 className="font-medium text-white text-sm truncate">{course.courseName}</h4>
+                    <p className="text-xs text-gray-500">{course.courseCode}</p>
+                  </div>
+                  <span
+                    className="ml-2 px-2 py-1 rounded-md text-sm font-bold"
+                    style={{ backgroundColor: `${getGradeColor(course.grade)}20`, color: getGradeColor(course.grade) }}
+                  >
+                    {course.grade}
+                  </span>
+                </div>
+
+                <div className="grid grid-cols-3 gap-2 mb-3">
+                  <div className="text-center p-2 bg-gray-900/50 rounded-lg">
+                    <p className="text-xs text-gray-500">Score</p>
+                    <p className="text-sm font-semibold text-white">
+                      {scoreBreakdown ? `${scoreBreakdown.finalScore}%` : `${course.score.toFixed(0)}%`}
+                    </p>
+                  </div>
+                  <div className="text-center p-2 bg-gray-900/50 rounded-lg">
+                    <p className="text-xs text-gray-500">Points</p>
+                    <p className="text-sm font-semibold text-white">{course.gradePoint.toFixed(1)}</p>
+                  </div>
+                  <div className="text-center p-2 bg-gray-900/50 rounded-lg">
+                    <p className="text-xs text-gray-500">Credits</p>
+                    <p className="text-sm font-semibold text-white">{course.credits}</p>
+                  </div>
+                </div>,
+
+                {scoreBreakdown && (
+                  <div className="flex items-center justify-between text-xs bg-blue-500/10 rounded-lg px-3 py-2 mb-3">
+                    <span className="text-gray-400">Actual: {scoreBreakdown.baseScore}%</span>
+                    <span className="text-blue-400 font-medium">With +2%: {scoreBreakdown.finalScore}%</span>
+                  </div>
+                )}
+
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="w-full text-red-400 hover:text-red-300 hover:bg-red-500/10 text-xs"
+                  onClick={() => handleRemoveCourse(index, level)}
+                >
+                  Remove Course
+                </Button>
+              </div>
+            );
+          })}
+        </div>
+
+        {/* Desktop Table Layout */}
+        <div className="hidden sm:block overflow-x-auto">
+          <table className="w-full text-sm">
+            <thead className="bg-gray-800/50">
               <tr>
-                <th className="py-3 px-4 text-left">Course</th>
-                <th className="py-3 px-4 text-center">Final Score</th>
-                <th className="py-3 px-4 text-center">Grade</th>
-                <th className="py-3 px-4 text-center">Points</th>
-                <th className="py-3 px-4 text-center">Credits</th>
-                <th className="py-3 px-4 text-right">Actions</th>
+                <th className="py-3 px-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">Course</th>
+                <th className="py-3 px-3 text-center text-xs font-medium text-gray-400 uppercase tracking-wider">Score</th>
+                <th className="py-3 px-3 text-center text-xs font-medium text-gray-400 uppercase tracking-wider">Grade</th>
+                <th className="py-3 px-3 text-center text-xs font-medium text-gray-400 uppercase tracking-wider">Points</th>
+                <th className="py-3 px-3 text-center text-xs font-medium text-gray-400 uppercase tracking-wider">Credits</th>
+                <th className="py-3 px-3 text-right text-xs font-medium text-gray-400 uppercase tracking-wider">Actions</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-700/20">
+            <tbody className="divide-y divide-gray-700/30">
               {courses.map((course, index) => {
-                const scoreBreakdown = level === 'foundation' ? foundationScoreBreakdowns.get(index) : null;
+                const scoreBreakdown = level === 'foundation'
+                  ? foundationScoreBreakdowns.get(index)
+                  : level === 'diploma'
+                    ? diplomaScoreBreakdowns.get(index)
+                    : degreeScoreBreakdowns.get(index);
 
                 return (
-                  <tr key={index} className="hover:bg-gray-700/10">
-                    <td className="py-3 px-4">
-                      <div className="font-medium">{course.courseName}</div>
-                      <div className="text-sm text-gray-400">{course.courseCode}</div>
+                  <tr key={index} className="hover:bg-gray-800/30 transition-colors">
+                    <td className="py-3 px-3">
+                      <div className="font-medium text-white">{course.courseName}</div>
+                      <div className="text-xs text-gray-500">{course.courseCode}</div>
                     </td>
-                    <td className="py-3 px-4 text-center">
-                      {level === 'foundation' && scoreBreakdown ? (
-                        <div className="space-y-1">
-                          <div className="text-sm text-gray-400">
-                            Base Score: {scoreBreakdown.baseScore}%
+                    <td className="py-3 px-3 text-center">
+                      {scoreBreakdown ? (
+                        <div className="space-y-0.5">
+                          <div className="text-xs text-gray-500">
+                            Actual: {scoreBreakdown.baseScore}%
                           </div>
-                          {scoreBreakdown.bonusApplied > 0 ? (
-                            <div className="font-medium text-green-400 flex items-center justify-center gap-1">
-                              <span>With Bonus (+{scoreBreakdown.bonusApplied}): {scoreBreakdown.finalScore}%</span>
-                              <span className="inline-flex items-center px-1.5 py-0.5 rounded text-xs bg-green-500/20 text-green-400">
-                                <Info className="w-3 h-3 mr-0.5" />
-                                Bonus
-                              </span>
-                            </div>
-                          ) : (
-                            <div className="font-medium">
-                              Final: {scoreBreakdown.finalScore}%
-                            </div>
-                          )}
+                          <div className="font-medium text-blue-400 text-sm">
+                            +2%: {scoreBreakdown.finalScore}%
+                          </div>
                         </div>
                       ) : (
-                        <span>{course.score.toFixed(0)}%</span>
+                        <span className="font-medium">{course.score.toFixed(0)}%</span>
                       )}
                     </td>
-                    <td className="py-3 px-4 text-center">
+                    <td className="py-3 px-3 text-center">
                       <span
-                        className="inline-block px-2 py-1 rounded text-sm font-medium"
-                        style={{ color: getGradeColor(course.grade) }}
+                        className="inline-block px-2 py-1 rounded-md text-sm font-bold"
+                        style={{ backgroundColor: `${getGradeColor(course.grade)}20`, color: getGradeColor(course.grade) }}
                       >
                         {course.grade}
                       </span>
                     </td>
-                    <td className="py-3 px-4 text-center">{course.gradePoint.toFixed(1)}</td>
-                    <td className="py-3 px-4 text-center">{course.credits}</td>
-                    <td className="py-3 px-4 text-right">
+                    <td className="py-3 px-3 text-center font-medium">{course.gradePoint.toFixed(1)}</td>
+                    <td className="py-3 px-3 text-center font-medium">{course.credits}</td>
+                    <td className="py-3 px-3 text-right">
                       <Button
-                        variant="link"
+                        variant="ghost"
                         size="sm"
-                        className="text-red-500 hover:text-red-400"
+                        className="text-red-400 hover:text-red-300 hover:bg-red-500/10 text-xs h-7 px-2"
                         onClick={() => handleRemoveCourse(index, level)}
                       >
                         Remove
@@ -645,7 +747,7 @@ export default function GradeCalculator() {
           </table>
         </div>
 
-        {/* Add CGPA Chart below the table */}
+        {/* Charts */}
         {courses.length > 0 && <GradeChart courses={courses} cgpa={cgpa} />}
       </>
     );

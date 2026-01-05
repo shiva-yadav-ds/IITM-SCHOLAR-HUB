@@ -288,18 +288,24 @@ export default function CGPACalculator() {
     localStorage.removeItem(STORAGE_KEYS.PREVIOUS_CGPA);
   }, []);
 
-  // Get grade color
+  // Get grade color - professional muted palette
   const getGradeColor = (grade: Grade) => {
     switch (grade) {
-      case 'S': return 'text-emerald-400';
-      case 'A': return 'text-green-400';
-      case 'B': return 'text-blue-400';
-      case 'C': return 'text-yellow-400';
-      case 'D': return 'text-orange-400';
-      case 'E': return 'text-amber-500';
-      case 'U': return 'text-red-500';
-      default: return 'text-gray-400';
+      case 'S': return 'text-slate-100';
+      case 'A': return 'text-slate-200';
+      case 'B': return 'text-slate-300';
+      case 'C': return 'text-slate-300';
+      case 'D': return 'text-slate-400';
+      case 'E': return 'text-slate-400';
+      case 'U': return 'text-slate-500';
+      default: return 'text-slate-500';
     }
+  };
+
+  // Get grade badge styling - professional look
+  const getGradeBadgeStyle = (grade: Grade, isSelected: boolean) => {
+    if (!isSelected) return 'bg-slate-800/60 text-slate-400 hover:bg-slate-700/80 border border-slate-700/50';
+    return 'bg-slate-100 text-slate-900 border border-slate-100 shadow-sm';
   };
 
   // Render Step Indicator
@@ -484,16 +490,15 @@ export default function CGPACalculator() {
             </div>
           )}
 
-          {/* Live CGPA Display */}
+          {/* Live CGPA Display - Compact Professional */}
           {courseEntries.some(e => e.grade && e.grade !== 'U') && (
-            <div className="bg-gradient-to-r from-blue-900/30 to-purple-900/30 rounded-lg p-3 border border-blue-700/30">
-              <div className="flex items-center justify-between">
-                <span className="text-sm text-gray-300">Current CGPA:</span>
-                <span className="text-2xl font-bold text-white">{overallResult.cgpa.toFixed(2)}</span>
+            <div className="bg-slate-800/40 rounded-md px-4 py-2.5 border border-slate-700/40 flex items-center justify-between">
+              <div className="flex items-center gap-4">
+                <span className="text-xs uppercase tracking-wider text-slate-500">CGPA</span>
+                <span className="text-lg font-semibold text-white">{overallResult.cgpa.toFixed(2)}</span>
               </div>
-              <div className="flex gap-3 text-xs text-gray-400 mt-1">
-                <span>{overallResult.totalCredits} credits</span>
-                <span>•</span>
+              <div className="flex gap-4 text-xs text-slate-500">
+                <span>{overallResult.totalCredits} cr</span>
                 <span>{overallResult.coursesCount} courses</span>
               </div>
             </div>
@@ -528,21 +533,13 @@ export default function CGPACalculator() {
                         <p className="text-xs text-gray-500">{course.credits} credits</p>
                       </div>
 
-                      {/* Grade Buttons - Horizontal scroll on mobile */}
+                      {/* Grade Buttons - Professional monochrome style */}
                       <div className="flex gap-1 overflow-x-auto pb-1 sm:pb-0">
                         {shortGrades.map(grade => (
                           <button
                             key={grade}
                             onClick={() => handleQuickGrade(course, grade as Grade)}
-                            className={`min-w-[32px] h-8 rounded text-xs font-bold transition-all ${currentGrade === grade
-                              ? grade === 'S' ? 'bg-emerald-500 text-white'
-                                : grade === 'A' ? 'bg-green-500 text-white'
-                                  : grade === 'B' ? 'bg-blue-500 text-white'
-                                    : grade === 'C' ? 'bg-yellow-500 text-black'
-                                      : grade === 'D' ? 'bg-orange-500 text-white'
-                                        : 'bg-amber-600 text-white'
-                              : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
-                              }`}
+                            className={`min-w-[28px] h-7 rounded text-xs font-medium transition-all ${getGradeBadgeStyle(grade as Grade, currentGrade === grade)}`}
                           >
                             {grade}
                           </button>
@@ -550,7 +547,7 @@ export default function CGPACalculator() {
                         {currentGrade && (
                           <button
                             onClick={() => handleRemoveCourse(courseEntries.find(e => e.course.code === course.code)?.id || '')}
-                            className="min-w-[32px] h-8 rounded text-xs bg-red-900/50 text-red-400 hover:bg-red-800/50"
+                            className="min-w-[28px] h-7 rounded text-xs text-slate-500 hover:text-slate-300 hover:bg-slate-700/50 transition-all"
                             title="Clear"
                           >
                             ✕
@@ -588,22 +585,22 @@ export default function CGPACalculator() {
     );
   };
 
-  // Render Step 3: Results
+  // Render Step 3: Results - Professional Compact Design
   const renderResults = () => {
     if (!programLevel) return null;
 
     const levels = getAvailableLevels(programLevel);
 
     return (
-      <Card className="bg-gradient-to-br from-gray-900/80 to-gray-800/80 border-gray-700">
-        <CardHeader>
+      <Card className="bg-slate-900/60 border-slate-700/50">
+        <CardHeader className="pb-3">
           <div className="flex items-center justify-between">
             <div>
-              <CardTitle className="flex items-center gap-2">
-                <Award className="w-6 h-6 text-blue-500" />
-                Step 3: Your CGPA Results
+              <CardTitle className="flex items-center gap-2 text-base">
+                <Award className="w-5 h-5 text-slate-400" />
+                CGPA Results
               </CardTitle>
-              <CardDescription>
+              <CardDescription className="text-xs">
                 Your calculated CGPA based on added courses
               </CardDescription>
             </div>
@@ -611,118 +608,96 @@ export default function CGPACalculator() {
               variant="outline"
               size="sm"
               onClick={() => setCurrentStep(2)}
-              className="border-gray-700"
+              className="border-slate-700 text-xs"
             >
               Edit Courses
             </Button>
           </div>
         </CardHeader>
-        <CardContent className="space-y-6">
-          {/* Overall CGPA Card */}
-          <Card className="bg-gradient-to-r from-blue-900/50 to-purple-900/50 border-blue-700/50">
-            <CardContent className="p-6">
-              <div className="text-center">
-                <p className="text-sm text-gray-400 mb-2">Overall CGPA</p>
-                <p className="text-5xl font-bold text-white mb-2">
-                  {overallResult.cgpa.toFixed(2)}
-                </p>
-                <div className="flex items-center justify-center gap-4 text-sm">
-                  <span className="text-gray-300">
-                    <TrendingUp className="w-4 h-4 inline mr-1" />
-                    {overallResult.percentage.toFixed(1)}%
-                  </span>
-                  <span className="text-gray-300">
-                    <BookOpen className="w-4 h-4 inline mr-1" />
-                    {overallResult.totalCredits} credits
-                  </span>
-                  <span className="text-gray-300">
-                    {overallResult.coursesCount} courses
-                  </span>
-                </div>
+        <CardContent className="space-y-4">
+          {/* Overall CGPA Card - Professional Compact */}
+          <div className="bg-slate-800/50 rounded-lg border border-slate-700/50 p-4">
+            <div className="flex items-center justify-between mb-3">
+              <span className="text-xs uppercase tracking-wider text-slate-500">Overall CGPA</span>
+              <div className="flex items-center gap-3 text-xs text-slate-400">
+                <span className="flex items-center gap-1">
+                  <TrendingUp className="w-3 h-3" />
+                  {overallResult.percentage.toFixed(1)}%
+                </span>
+                <span>{overallResult.totalCredits} credits</span>
+                <span>{overallResult.coursesCount} courses</span>
               </div>
+            </div>
+            <div className="flex items-center gap-4">
+              <span className="text-3xl font-bold text-white">{overallResult.cgpa.toFixed(2)}</span>
               <Progress
                 value={overallResult.cgpa * 10}
-                className="mt-4 h-2 bg-gray-700"
+                className="flex-1 h-1.5 bg-slate-700"
               />
-            </CardContent>
-          </Card>
+            </div>
+          </div>
 
-          {/* Level-wise CGPA */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          {/* Level-wise CGPA - Compact inline */}
+          <div className="flex flex-wrap gap-3">
             {levels.map(level => {
               const result = levelResults[level];
-              if (!result || result.coursesCount === 0) {
-                return (
-                  <Card key={level} className="bg-gray-800/50 border-gray-700 opacity-50">
-                    <CardContent className="p-4">
-                      <p className="text-sm text-gray-400">{levelDisplayNames[level]} CGPA</p>
-                      <p className="text-2xl font-bold text-gray-500">--</p>
-                      <p className="text-xs text-gray-500">No courses added</p>
-                    </CardContent>
-                  </Card>
-                );
-              }
+              if (!result || result.coursesCount === 0) return null;
               return (
-                <Card key={level} className="bg-gray-800/50 border-gray-700">
-                  <CardContent className="p-4">
-                    <p className="text-sm text-gray-400">{levelDisplayNames[level]} CGPA</p>
-                    <p className="text-2xl font-bold">{result.cgpa.toFixed(2)}</p>
-                    <p className="text-xs text-gray-400">
-                      {result.totalCredits} credits • {result.coursesCount} courses
-                    </p>
-                  </CardContent>
-                </Card>
+                <div key={level} className="bg-slate-800/40 rounded-md px-3 py-2 border border-slate-700/40">
+                  <span className="text-xs text-slate-500">{levelDisplayNames[level]}</span>
+                  <span className="text-sm font-semibold text-white ml-2">{result.cgpa.toFixed(2)}</span>
+                  <span className="text-xs text-slate-500 ml-2">{result.totalCredits}cr</span>
+                </div>
               );
             })}
           </div>
 
-          {/* Course Summary */}
-          <div className="space-y-3">
-            <h4 className="font-semibold">Course Summary</h4>
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+          {/* Course Summary - Compact horizontal */}
+          <div className="border-t border-slate-700/40 pt-3">
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-xs uppercase tracking-wider text-slate-500">Grade Distribution</span>
+            </div>
+            <div className="flex flex-wrap gap-2">
               {gradeOptions.slice(0, 6).map(opt => {
                 const count = courseEntries.filter(
                   e => e.grade === opt.value && e.includeInCGPA
                 ).length;
+                if (count === 0) return null;
                 return (
                   <div
                     key={opt.value}
-                    className="bg-gray-800/50 rounded-lg p-3 text-center"
+                    className="bg-slate-800/40 rounded px-2.5 py-1.5 flex items-center gap-1.5 border border-slate-700/40"
                   >
-                    <p className={`text-2xl font-bold ${getGradeColor(opt.value)}`}>
-                      {count}
-                    </p>
-                    <p className="text-xs text-gray-400">Grade {opt.value}</p>
+                    <span className="text-xs font-medium text-slate-300">{opt.value}</span>
+                    <span className="text-xs text-slate-500">×{count}</span>
                   </div>
                 );
               })}
             </div>
           </div>
 
-          {/* Grading Scale Reference */}
-          <div className="bg-gray-800/30 rounded-lg p-4">
-            <h4 className="font-semibold mb-3">IIT Madras Grading Scale</h4>
-            <div className="grid grid-cols-4 sm:grid-cols-7 gap-2 text-center text-sm">
+          {/* Grading Scale Reference - Compact */}
+          <div className="border-t border-slate-700/40 pt-3">
+            <div className="flex items-center gap-2 flex-wrap">
+              <span className="text-xs uppercase tracking-wider text-slate-500 mr-2">Scale</span>
               {gradeOptions.map(opt => (
-                <div key={opt.value} className="bg-gray-800 rounded p-2">
-                  <span className={`font-bold ${getGradeColor(opt.value)}`}>
-                    {opt.value}
-                  </span>
-                  <span className="text-gray-400 ml-1">= {opt.points}</span>
-                </div>
+                <span key={opt.value} className="text-xs text-slate-400">
+                  {opt.value}={opt.points}
+                </span>
               ))}
             </div>
           </div>
 
-          {/* Reset Button */}
-          <div className="flex justify-center pt-4">
+          {/* Reset Button - Subtle */}
+          <div className="flex justify-center pt-2">
             <Button
-              variant="outline"
+              variant="ghost"
+              size="sm"
               onClick={handleReset}
-              className="border-red-700 text-red-400 hover:bg-red-500/10"
+              className="text-slate-500 hover:text-slate-300 text-xs"
             >
-              <RefreshCw className="w-4 h-4 mr-2" />
-              Reset Calculator
+              <RefreshCw className="w-3 h-3 mr-1.5" />
+              Reset
             </Button>
           </div>
         </CardContent>

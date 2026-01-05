@@ -14,6 +14,17 @@ function roundScore(score: number): number {
 }
 
 /**
+ * Result interface for Diploma score calculations
+ * Shows both actual score and score with +2% bonus
+ */
+export interface DiplomaScoreResult {
+  baseScore: number;      // Actual calculated score
+  finalScore: number;     // Score + 2% (capped at 100)
+  bonusApplied: number;   // 2 marks bonus
+  formula: string;        // Formula used for calculation
+}
+
+/**
  * Parameters for calculating diploma level course scores
  * Updated with new fields for 2026 rules
  */
@@ -167,6 +178,136 @@ export function calculateDiplomaTotal(params: DiplomaParams): number {
   total = Math.min(total, 100);
 
   return roundUpScore(total);
+}
+
+/**
+ * Calculate diploma scores with dual display (actual vs +2% bonus)
+ * Returns both base score and score with +2% bonus
+ */
+export function calculateDiplomaScores(params: DiplomaParams): DiplomaScoreResult {
+  const { subject } = params;
+
+  // Calculate base score using existing function logic (without the final roundUp)
+  const baseTotal = calculateDiplomaTotalRaw(params);
+  const baseScore = roundScore(Math.min(baseTotal, 100));
+
+  // Add 2% bonus (capped at 100)
+  const bonusApplied = 2;
+  const finalScore = roundScore(Math.min(baseTotal + bonusApplied, 100));
+
+  // Get formula based on subject
+  const formula = getDiplomaFormula(subject);
+
+  return {
+    baseScore,
+    finalScore,
+    bonusApplied,
+    formula
+  };
+}
+
+/**
+ * Calculate raw diploma total (without rounding) for internal use
+ */
+function calculateDiplomaTotalRaw(params: DiplomaParams): number {
+  const {
+    subject,
+    gaa = 0,
+    gaa2 = 0,
+    gaa3 = 0,
+    quiz1 = 0,
+    quiz2 = 0,
+    finalExam = 0,
+    programmingBonus = 0,
+    oppe1 = 0,
+    oppe2 = 0,
+    ka = 0,
+    ga = 0,
+    timedAssignment = 0,
+    a = 0,
+    roe = 0,
+    p1 = 0,
+    p2 = 0,
+    op = 0,
+    gla = 0,
+    pe1 = 0,
+    pe2 = 0,
+    bpta = 0,
+    oppe = 0,
+    nppe1 = 0,
+    nppe2 = 0
+  } = params;
+
+  let total = 0;
+
+  if (subject === 'ml_foundations') {
+    const option1 = 0.6 * finalExam + 0.25 * Math.max(quiz1, quiz2);
+    const option2 = 0.4 * finalExam + 0.25 * quiz1 + 0.3 * quiz2;
+    total = 0.05 * gaa + Math.max(option1, option2);
+  } else if (subject === 'ml_techniques') {
+    const option1 = 0.6 * finalExam + 0.25 * Math.max(quiz1, quiz2);
+    const option2 = 0.4 * finalExam + 0.25 * quiz1 + 0.3 * quiz2;
+    total = 0.05 * gaa + Math.max(option1, option2);
+    if (gaa >= 40) total += Math.min(3, programmingBonus);
+  } else if (subject === 'ml_practice') {
+    total = 0.1 * gaa + 0.3 * finalExam + 0.2 * oppe1 + 0.2 * oppe2 + 0.2 * ka;
+  } else if (subject === 'business_data_management') {
+    total = ga + quiz2 + timedAssignment + finalExam;
+  } else if (subject === 'business_analytics') {
+    const quizScore = 0.7 * Math.max(quiz1, quiz2) + 0.3 * Math.min(quiz1, quiz2);
+    total = quizScore + a + finalExam;
+  } else if (subject === 'tools_in_data_science') {
+    total = 0.1 * gaa + 0.2 * roe + 0.2 * p1 + 0.2 * p2 + 0.3 * finalExam;
+  } else if (subject === 'pdsa') {
+    const quizOption1 = 0.2 * Math.max(quiz1, quiz2);
+    const quizOption2 = 0.1 * quiz1 + 0.2 * quiz2;
+    total = 0.05 * gaa + 0.2 * op + 0.45 * finalExam + Math.max(quizOption1, quizOption2);
+  } else if (subject === 'dbms') {
+    const quizOption1 = 0.2 * Math.max(quiz1, quiz2);
+    const quizOption2 = 0.1 * quiz1 + 0.2 * quiz2;
+    total = 0.03 * gaa2 + 0.02 * gaa3 + 0.2 * op + 0.45 * finalExam + Math.max(quizOption1, quizOption2);
+  } else if (subject === 'app_dev_1') {
+    const option1 = 0.6 * finalExam + 0.25 * Math.max(quiz1, quiz2);
+    const option2 = 0.4 * finalExam + 0.25 * quiz1 + 0.3 * quiz2;
+    total = 0.05 * gla + Math.max(option1, option2);
+  } else if (subject === 'java') {
+    const quizOption1 = 0.2 * Math.max(quiz1, quiz2);
+    const quizOption2 = 0.1 * quiz1 + 0.2 * quiz2;
+    total = 0.05 * gaa + 0.2 * Math.max(pe1, pe2) + 0.45 * finalExam +
+      Math.max(quizOption1, quizOption2) + 0.1 * Math.min(pe1, pe2);
+  } else if (subject === 'system_commands') {
+    total = 0.05 * gaa + 0.25 * quiz1 + 0.3 * oppe + 0.3 * finalExam + 0.1 * bpta;
+  } else if (subject === 'app_dev_2') {
+    const option1 = 0.6 * finalExam + 0.25 * Math.max(quiz1, quiz2);
+    const option2 = 0.4 * finalExam + 0.25 * quiz1 + 0.3 * quiz2;
+    total = 0.05 * gaa + Math.max(option1, option2);
+  } else if (subject === 'dl_genai') {
+    total = 0.1 * gaa + 0.2 * quiz1 + 0.2 * quiz2 + 0.25 * finalExam + 0.1 * nppe1 + 0.15 * nppe2;
+  }
+
+  return total;
+}
+
+/**
+ * Get formula string for diploma subject
+ */
+function getDiplomaFormula(subject: string): string {
+  const formulas: Record<string, string> = {
+    'ml_foundations': 'T = 0.05×GAA + max(0.6F + 0.25×max(Qz1,Qz2), 0.4F + 0.25×Qz1 + 0.3×Qz2)',
+    'ml_techniques': 'T = 0.05×GAA + max(0.6F + 0.25×max(Qz1,Qz2), 0.4F + 0.25×Qz1 + 0.3×Qz2) + Bonus',
+    'ml_practice': 'T = 0.1×GAA + 0.3×F + 0.2×OPPE1 + 0.2×OPPE2 + 0.2×KA',
+    'business_data_management': 'T = GA + Qz2 + TimedAssignment + F',
+    'business_analytics': 'T = 0.7×max(Qz1,Qz2) + 0.3×min(Qz1,Qz2) + A + F',
+    'tools_in_data_science': 'T = 0.1×GAA + 0.2×ROE + 0.2×P1 + 0.2×P2 + 0.3×F',
+    'pdsa': 'T = 0.05×GAA + 0.2×OP + 0.45×F + max(0.2×max(Qz1,Qz2), 0.1×Qz1 + 0.2×Qz2)',
+    'dbms': 'T = 0.03×GAA2 + 0.02×GAA3 + 0.2×OP + 0.45×F + max(0.2×max(Qz1,Qz2), 0.1×Qz1 + 0.2×Qz2)',
+    'app_dev_1': 'T = 0.05×GLA + max(0.6F + 0.25×max(Qz1,Qz2), 0.4F + 0.25×Qz1 + 0.3×Qz2)',
+    'java': 'T = 0.05×GAA + 0.2×max(PE1,PE2) + 0.45×F + max(0.2×max(Qz1,Qz2), 0.1×Qz1 + 0.2×Qz2) + 0.1×min(PE1,PE2)',
+    'system_commands': 'T = 0.05×GAA + 0.25×Qz1 + 0.3×OPPE + 0.3×F + 0.1×BPTA',
+    'app_dev_2': 'T = 0.05×GAA + max(0.6F + 0.25×max(Qz1,Qz2), 0.4F + 0.25×Qz1 + 0.3×Qz2)',
+    'dl_genai': 'T = 0.1×GAA + 0.2×Qz1 + 0.2×Qz2 + 0.25×F + 0.1×NPPE1 + 0.15×NPPE2'
+  };
+  return formulas[subject] || 'Standard formula';
 }
 
 /**

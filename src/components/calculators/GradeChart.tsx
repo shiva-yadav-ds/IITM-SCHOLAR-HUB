@@ -132,34 +132,35 @@ const GradeChart: React.FC<GradeChartProps> = ({ courses, cgpa }) => {
   // Chart options with improved styling for better contrast
   const chartOptions = {
     responsive: true,
+    maintainAspectRatio: true,
     plugins: {
       legend: {
-        position: 'right' as const,
+        position: 'bottom' as const,
         labels: {
           usePointStyle: true,
-          padding: 20,
+          padding: 15,
           font: {
-            size: 12,
+            size: 11,
             weight: 'bold' as const,
           },
-          color: 'white', // Ensure legend text is visible
+          color: 'white',
         },
       },
       tooltip: {
-        backgroundColor: 'rgba(15, 23, 42, 0.95)', // Darker background for better contrast
+        backgroundColor: 'rgba(15, 23, 42, 0.95)',
         titleFont: {
-          size: 14,
+          size: 13,
           weight: 'bold' as const,
         },
         bodyFont: {
-          size: 13,
+          size: 12,
         },
-        padding: 12,
+        padding: 10,
         cornerRadius: 8,
         displayColors: true,
-        boxPadding: 6,
-        titleColor: 'rgba(255, 255, 255, 1)', // Bright white for title
-        bodyColor: 'rgba(255, 255, 255, 1)',  // Bright white for body
+        boxPadding: 4,
+        titleColor: 'rgba(255, 255, 255, 1)',
+        bodyColor: 'rgba(255, 255, 255, 1)',
       },
     },
   };
@@ -221,22 +222,22 @@ const GradeChart: React.FC<GradeChartProps> = ({ courses, cgpa }) => {
   };
 
   return (
-    <div className="mt-8 grid grid-cols-1 md:grid-cols-3 gap-6">
+    <div className="mt-6 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
       {/* CGPA Display Card */}
       <Card className="bg-gray-900/40 backdrop-blur-sm border-gray-700/50 shadow-xl overflow-hidden">
-        <CardContent className="p-6 flex flex-col items-center justify-center">
-          <h3 className="text-lg font-medium mb-4 text-center">CGPA</h3>
-          <div className="relative w-44 h-44">
+        <CardContent className="p-4 sm:p-6 flex flex-col items-center justify-center">
+          <h3 className="text-base sm:text-lg font-medium mb-3 text-center text-gray-200">CGPA</h3>
+          <div className="relative w-32 h-32 sm:w-40 sm:h-40">
             <Doughnut data={cgpaData} options={cgpaOptions} />
             <div className="absolute inset-0 flex flex-col items-center justify-center">
-              <span className="text-4xl font-bold" style={{ color: cgpaColor }}>
+              <span className="text-2xl sm:text-3xl font-bold" style={{ color: cgpaColor }}>
                 {cgpaDisplayValue.toFixed(2)}
               </span>
-              <span className="text-sm text-gray-300 mt-1">out of 10.0</span>
+              <span className="text-xs sm:text-sm text-gray-400 mt-1">out of 10.0</span>
             </div>
           </div>
-          <div className="mt-4 text-center">
-            <p className="text-sm text-gray-300">
+          <div className="mt-3 text-center">
+            <p className="text-xs sm:text-sm text-gray-400">
               Total Credits: <span className="font-medium text-white">{totalCredits}</span>
             </p>
           </div>
@@ -245,19 +246,19 @@ const GradeChart: React.FC<GradeChartProps> = ({ courses, cgpa }) => {
 
       {/* Grade Distribution Card */}
       <Card className="bg-gray-900/40 backdrop-blur-sm border-gray-700/50 shadow-xl overflow-hidden">
-        <CardContent className="p-6">
-          <h3 className="text-lg font-medium mb-4">Grade Distribution</h3>
-          <div className="h-[250px] flex items-center justify-center">
+        <CardContent className="p-4 sm:p-6">
+          <h3 className="text-base sm:text-lg font-medium mb-3 text-gray-200">Grade Distribution</h3>
+          <div className="h-[180px] sm:h-[220px] flex items-center justify-center">
             <Doughnut data={gradeDistribution} options={chartOptions} />
           </div>
         </CardContent>
       </Card>
 
       {/* Credit Distribution Card */}
-      <Card className="bg-gray-900/40 backdrop-blur-sm border-gray-700/50 shadow-xl overflow-hidden">
-        <CardContent className="p-6">
-          <h3 className="text-lg font-medium mb-4">Credit Distribution</h3>
-          <div className="h-[250px] flex items-center justify-center">
+      <Card className="bg-gray-900/40 backdrop-blur-sm border-gray-700/50 shadow-xl overflow-hidden sm:col-span-2 lg:col-span-1">
+        <CardContent className="p-4 sm:p-6">
+          <h3 className="text-base sm:text-lg font-medium mb-3 text-gray-200">Credit Distribution</h3>
+          <div className="h-[180px] sm:h-[220px] flex items-center justify-center">
             <Doughnut data={creditDistribution} options={chartOptions} />
           </div>
         </CardContent>

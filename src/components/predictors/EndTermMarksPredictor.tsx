@@ -70,9 +70,9 @@ const InputField = memo(({
   onChange: (field: string, value: string) => void;
 }) => (
   <div
-    className="group flex flex-col space-y-2 bg-gradient-to-br from-gray-800/50 to-gray-900/50 p-4 rounded-md border border-gray-700/50 transition-all duration-300 hover:border-blue-500/30 hover:from-gray-800/60 hover:to-gray-900/60"
+    className="group flex flex-col space-y-1.5 bg-gradient-to-br from-gray-800/50 to-gray-900/50 p-3 sm:p-4 rounded-lg border border-gray-700/50 transition-all duration-300 hover:border-blue-500/30"
   >
-    <Label className="text-sm font-medium text-gray-300 group-hover:text-gray-200">
+    <Label className="text-xs sm:text-sm font-medium text-gray-400 group-hover:text-gray-300">
       {label}
     </Label>
     <Input
@@ -83,7 +83,7 @@ const InputField = memo(({
       placeholder="Enter score"
       value={value !== undefined ? value : ''}
       onChange={(e) => onChange(field, e.target.value)}
-      className="bg-gray-900/80 border-gray-700 focus:border-blue-500/50 text-white placeholder:text-gray-500"
+      className="bg-gray-900/80 border-gray-700 focus:border-blue-500/50 text-white placeholder:text-gray-500 h-9 sm:h-10 text-sm"
     />
   </div>
 ));
@@ -106,50 +106,50 @@ const ResultCard = memo(({
 
   return (
     <Card className={`
-      overflow-hidden border-gray-800 cursor-pointer transition-all duration-300 transform
-      ${isSelected ? 'scale-105 ring-2 ring-iitm-blue shadow-lg' : ''}
-      ${!isAchievable ? 'opacity-70' : ''}
+      overflow-hidden border-gray-800 cursor-pointer transition-all duration-200
+      ${isSelected ? 'ring-2 ring-blue-500 shadow-lg shadow-blue-500/10' : ''}
+      ${!isAchievable ? 'opacity-60' : ''}
     `}
     >
-      <CardHeader className="bg-gradient-to-r from-iitm-dark to-iitm-dark/80 py-4 px-5">
-        <CardTitle className="text-base sm:text-lg">Grade {prediction.grade}</CardTitle>
+      <CardHeader className="bg-gradient-to-r from-gray-800 to-gray-800/80 py-2.5 sm:py-3 px-3 sm:px-4">
+        <CardTitle className="text-sm sm:text-base font-semibold">Grade {prediction.grade}</CardTitle>
       </CardHeader>
       <CardContent
-        className="p-4 bg-gradient-to-br from-gray-900 to-gray-900/90"
+        className="p-3 sm:p-4 bg-gradient-to-br from-gray-900 to-gray-900/90"
         onClick={() => isAchievable && onSelect(index)}
       >
         <div className="text-center">
-          <div className={`text-lg font-bold mb-2 ${isAchievable ? 'text-iitm-blue' : 'text-red-400'}`}>
+          <div className={`text-sm sm:text-base font-bold mb-2 ${isAchievable ? 'text-blue-400' : 'text-red-400'}`}>
             {isAchievable ? (
               <>
-                <Check className="w-5 h-5 inline mr-1" />
+                <Check className="w-4 h-4 inline mr-1" />
                 <span>Achievable</span>
               </>
             ) : (
               <>
-                <X className="w-5 h-5 inline mr-1" />
+                <X className="w-4 h-4 inline mr-1" />
                 <span>Not Achievable</span>
               </>
             )}
           </div>
 
-          <div className="mb-4">
-            <div className="text-sm text-gray-400">Required in Final Exam:</div>
-            <div className="text-xl font-bold mt-1">
+          <div className="mb-3">
+            <div className="text-xs text-gray-500">Required in Final:</div>
+            <div className="text-base sm:text-lg font-bold mt-0.5">
               {requiredScore > 100 ? (
                 <span className="text-red-400">Not Possible</span>
               ) : requiredScore < 0 ? (
                 <span className="text-green-400">Already Achieved!</span>
               ) : (
-                <span>{requiredScore.toFixed(2)}%</span>
+                <span className="text-white">{requiredScore.toFixed(1)}%</span>
               )}
             </div>
           </div>
 
           {isAchievable && requiredScore >= 0 && requiredScore <= 100 && (
-            <div className="h-2 bg-gray-700 rounded-full overflow-hidden">
+            <div className="h-1.5 bg-gray-700 rounded-full overflow-hidden">
               <div
-                className="h-full bg-iitm-blue rounded-full"
+                className="h-full bg-blue-500 rounded-full"
                 style={{ width: `${requiredPercentage}%` }}
               ></div>
             </div>
@@ -402,9 +402,9 @@ export default function EndTermMarksPredictor({ level = 'foundation' }: EndTermM
     if (requiredFields.length === 0) return null;
 
     return (
-      <div className="bg-gradient-to-br from-gray-900/30 to-gray-800/30 p-5 rounded-lg border border-gray-700/40 backdrop-blur-sm">
-        <h3 className="text-lg font-semibold mb-4 text-center">Enter Your Current Scores</h3>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-5 w-full">
+      <div className="bg-gradient-to-br from-gray-900/30 to-gray-800/30 p-4 sm:p-5 rounded-lg border border-gray-700/40 backdrop-blur-sm">
+        <h3 className="text-base sm:text-lg font-semibold mb-3 sm:mb-4 text-center text-gray-200">Enter Your Current Scores</h3>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 w-full">
           {requiredFields.map((field) => (
             <InputField
               key={field}
@@ -415,13 +415,13 @@ export default function EndTermMarksPredictor({ level = 'foundation' }: EndTermM
             />
           ))}
         </div>
-        <div className="mt-6 flex justify-center">
+        <div className="mt-4 sm:mt-6 flex justify-center">
           <Button
             onClick={calculateResults}
-            className="bg-iitm-blue hover:bg-blue-700 text-white py-2 px-6 rounded-lg flex items-center gap-2 transition-all"
+            className="w-full sm:w-auto bg-blue-600 hover:bg-blue-500 text-white py-2.5 px-6 rounded-lg flex items-center justify-center gap-2 transition-all text-sm sm:text-base font-medium"
           >
-            <Calculator className="w-5 h-5" />
-            Calculate
+            <Calculator className="w-4 h-4 sm:w-5 sm:h-5" />
+            Calculate Required Score
           </Button>
         </div>
       </div>
@@ -433,7 +433,7 @@ export default function EndTermMarksPredictor({ level = 'foundation' }: EndTermM
     if (!predictions.length) return null;
 
     return (
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mt-6">
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2 sm:gap-3 mt-4 sm:mt-6">
         {predictions.map((prediction, index) => (
           <ResultCard
             key={`${prediction.grade}-${index}`}
@@ -506,18 +506,18 @@ export default function EndTermMarksPredictor({ level = 'foundation' }: EndTermM
   }, [predictions, selectedGradeIndex, showGraph, toggleGraph, totalAchieved, handleSelectGrade, selectedSubject, currentComponents, formulaWeightage]);
 
   return (
-    <div className="space-y-6">
-      <div className="bg-gradient-to-br from-gray-900/30 to-gray-800/30 p-5 rounded-lg border border-gray-700/40 backdrop-blur-sm">
-        <h2 className="text-xl font-bold mb-4 text-center">Select Your Course</h2>
-        <div className="flex flex-col sm:flex-row justify-between gap-4">
+    <div className="space-y-4 sm:space-y-6">
+      <div className="bg-gradient-to-br from-gray-900/30 to-gray-800/30 p-4 sm:p-5 rounded-lg border border-gray-700/40 backdrop-blur-sm">
+        <h2 className="text-base sm:text-xl font-bold mb-3 sm:mb-4 text-center text-gray-200">Select Your Course</h2>
+        <div className="flex flex-col sm:flex-row justify-between gap-3 sm:gap-4">
           <div className="flex-grow w-full">
             <Select value={selectedSubject} onValueChange={setSelectedSubject}>
-              <SelectTrigger className="w-full bg-gray-900/80 border-gray-700 focus:border-blue-500/50 text-white">
+              <SelectTrigger className="w-full bg-gray-900/80 border-gray-700 focus:border-blue-500/50 text-white h-10 sm:h-11">
                 <SelectValue placeholder="Select a subject" />
               </SelectTrigger>
-              <SelectContent className="bg-gray-900 border-gray-700 text-white">
+              <SelectContent className="bg-gray-900 border-gray-700 text-white max-h-60">
                 {subjectList.map((subject) => (
-                  <SelectItem key={subject.code} value={subject.code}>
+                  <SelectItem key={subject.code} value={subject.code} className="text-sm">
                     {subject.label || subject.code}
                   </SelectItem>
                 ))}
@@ -527,7 +527,8 @@ export default function EndTermMarksPredictor({ level = 'foundation' }: EndTermM
           <Button
             onClick={resetForm}
             variant="outline"
-            className="ml-0 sm:ml-4 text-red-400 border-red-500/30 hover:bg-red-900/20 hover:text-red-300"
+            size="sm"
+            className="text-red-400 border-red-500/30 hover:bg-red-900/20 hover:text-red-300 h-10 sm:h-11 px-4"
           >
             Reset
           </Button>

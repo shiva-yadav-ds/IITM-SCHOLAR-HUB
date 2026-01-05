@@ -36,22 +36,361 @@ export interface DegreeParams {
   nppe3?: number;
   ga?: number;
   project?: number;
+  viva?: number; // Viva score for Deep Learning Practice
   [key: string]: string | number | undefined; // Allow any string key with number values
+}
+
+/**
+ * Result interface for Degree score calculations
+ * Shows both actual score and score with +2% bonus
+ */
+export interface DegreeScoreResult {
+  baseScore: number;      // Actual calculated score
+  finalScore: number;     // Score + 2% (capped at 100)
+  bonusApplied: number;   // 2 marks bonus
+  formula: string;        // Formula used for calculation
 }
 
 /**
  * Calculate total score for degree level course
  */
 export function calculateDegreeTotal(params: DegreeParams): number {
-  const { 
-    subject, 
-    gaa = 0, 
+  const {
+    subject,
+    gaa = 0,
     gaap = 0,
     gpa = 0,
-    quiz1 = 0, 
-    quiz2 = 0, 
+    quiz1 = 0,
+    quiz2 = 0,
     quiz3 = 0,
-    finalExam = 0, 
+    finalExam = 0,
+    normalBonus = 0,
+    programmingBonus = 0,
+    llmProgrammingBonus = 0,
+    extraAssignmentBonus = 0,
+    gameBonus = 0,
+    game = 0,
+    quizzes = 0,
+    assignment1 = 0,
+    assignment2 = 0,
+    assignment3 = 0,
+    projectSubmission = 0,
+    projectPresentation = 0,
+    gp1 = 0,
+    gp2 = 0,
+    pp = 0,
+    cp = 0,
+    gp = 0,
+    oppe1 = 0,
+    oppe2 = 0,
+    nppe1 = 0,
+    nppe2 = 0,
+    nppe3 = 0,
+    ga = 0,
+    project = 0,
+    viva = 0
+  } = params;
+
+  let total = 0;
+
+  if (subject === 'software_testing') {
+    // T = 0.1GAA + 0.4F + 0.25Qz1 + 0.25Qz2 + Normal Bonus
+    total = 0.1 * gaa + 0.4 * finalExam + 0.25 * quiz1 + 0.25 * quiz2;
+
+    // Add normal bonus if total is passing (≥40)
+    if (total >= 40) {
+      total += normalBonus;
+    }
+  }
+  else if (subject === 'software_engineering') {
+    // T = 0.05GAA + 0.2Qz2 + 0.4F + 0.1GP1 + 0.1GP2 + 0.1PP + 0.05CP + Normal Bonus
+    total = 0.05 * gaa + 0.2 * quiz2 + 0.4 * finalExam + 0.1 * gp1 + 0.1 * gp2 + 0.1 * pp + 0.05 * cp;
+
+    // Add normal bonus if total is passing (≥40)
+    if (total >= 40) {
+      total += normalBonus;
+    }
+  }
+  else if (subject === 'deep_learning') {
+    // T = 0.05GAA + 0.25Qz1 + 0.25Qz2 + 0.45F + Programming Activity Bonus (max 5)
+    total = 0.05 * gaa + 0.25 * quiz1 + 0.25 * quiz2 + 0.45 * finalExam;
+
+    // Add bonuses if total is passing (≥40)
+    if (total >= 40) {
+      total += programmingBonus + normalBonus;
+    }
+  }
+  else if (subject === 'ai_search_methods') {
+    // T = 0.1GAA + 0.4F + 0.25Qz1 + 0.25Qz2 + Programming Assignment Bonus + Normal Bonus
+    total = 0.1 * gaa + 0.4 * finalExam + 0.25 * quiz1 + 0.25 * quiz2;
+
+    // Add bonuses if total is passing (≥40)
+    if (total >= 40) {
+      total += programmingBonus + normalBonus;
+    }
+  }
+  else if (subject === 'professional_growth') {
+    // T = 0.15GAA + 0.25GP + 0.25Qz2 + 0.35F + Normal Bonus
+    total = 0.15 * gaa + 0.25 * gp + 0.25 * quiz2 + 0.35 * finalExam;
+
+    // Add normal bonus if total is passing (≥40)
+    if (total >= 40) {
+      total += normalBonus;
+    }
+  }
+  else if (subject === 'big_data') {
+    // T = 0.1GAA + 0.3F + 0.2OPPE1 + 0.4OPPE2 + Normal Bonus
+    total = 0.1 * gaa + 0.3 * finalExam + 0.2 * oppe1 + 0.4 * oppe2;
+
+    // Add normal bonus if total is passing (≥40)
+    if (total >= 40) {
+      total += normalBonus;
+    }
+  }
+  else if (subject === 'programming_in_c') {
+    // T = 0.10GAA + 0.20Qz1 + 0.20OPPE1 + 0.20OPPE2 + 0.30F + Normal Bonus
+    total = 0.1 * gaa + 0.2 * quiz1 + 0.2 * oppe1 + 0.2 * oppe2 + 0.3 * finalExam;
+
+    // Add normal bonus if total is passing (≥40)
+    if (total >= 40) {
+      total += normalBonus;
+    }
+  }
+  else if (subject === 'financial_forensics') {
+    // T = 0.1GAA + max(0.25Qz1 + 0.3GP1 + 0.35F, 0.5F + 0.3max(Qz1, GP1)) + Normal Bonus
+    const option1 = 0.25 * quiz1 + 0.3 * gp1 + 0.35 * finalExam;
+    const option2 = 0.5 * finalExam + 0.3 * Math.max(quiz1, gp1);
+
+    total = 0.1 * gaa + Math.max(option1, option2);
+
+    // Add normal bonus if total is passing (≥40)
+    if (total >= 40) {
+      total += normalBonus;
+    }
+  }
+  else if (subject === 'nlp') {
+    // T = 0.1GAA + 0.5F + 0.2Qz1 + 0.2Qz2 + Normal Bonus
+    total = 0.1 * gaa + 0.5 * finalExam + 0.2 * quiz1 + 0.2 * quiz2;
+
+    // Add normal bonus if total is passing (≥40)
+    if (total >= 40) {
+      total += normalBonus;
+    }
+  }
+  else if (subject === 'corporate_finance') {
+    // T = 0.1GAA + 0.4F + 0.2Qz1 + 0.3Qz2 + Normal Bonus
+    total = 0.1 * gaa + 0.4 * finalExam + 0.2 * quiz1 + 0.3 * quiz2;
+
+    // Add normal bonus if total is passing (≥40)
+    if (total >= 40) {
+      total += normalBonus;
+    }
+  }
+  // New courses
+  else if (subject === 'deep_learning_practice') {
+    // T = 0.05GA + 0.15Quiz1 + 0.15Quiz2 + 0.15Quiz3 + 0.25*avgNPPE + 0.25Viva + Normal Bonus
+
+    // Calculate average NPPE score
+    const avgNPPE = (nppe1 + nppe2 + nppe3) / 3;
+
+    total = 0.05 * ga + 0.15 * quiz1 + 0.15 * quiz2 + 0.15 * quiz3 +
+      0.25 * avgNPPE + 0.25 * viva;
+
+    // Add normal bonus if total is passing (≥40)
+    if (total >= 40) {
+      total += normalBonus;
+    }
+  }
+  else if (subject === 'deep_learning_cv') {
+    // T = 0.1GAA + 0.4F + 0.25Qz1 + 0.25Qz2 + Normal Bonus
+    total = 0.1 * gaa + 0.4 * finalExam + 0.25 * quiz1 + 0.25 * quiz2;
+
+    // Add normal bonus if total is passing (≥40)
+    if (total >= 40) {
+      total += normalBonus;
+    }
+  }
+  else if (subject === 'data_visualization') {
+    // T = 0.3GA + max(0.2Qz1 + 0.2Qz2, 0.3max(Qz1, Qz2)) + 0.3P + Bonus + Normal Bonus
+    const option1 = 0.2 * quiz1 + 0.2 * quiz2;
+    const option2 = 0.3 * Math.max(quiz1, quiz2);
+
+    total = 0.3 * ga + Math.max(option1, option2) + 0.3 * project;
+
+    // Add bonuses if total is passing (≥40)
+    if (total >= 40) {
+      total += extraAssignmentBonus + normalBonus;
+    }
+  }
+  else if (subject === 'managerial_economics') {
+    // T = 0.15GAA + max(0.2Qz1 + 0.2Qz2 + 0.45F, 0.5F + 0.25max(Qz1, Qz2)) + Normal Bonus
+    const option1 = 0.2 * quiz1 + 0.2 * quiz2 + 0.45 * finalExam;
+    const option2 = 0.5 * finalExam + 0.25 * Math.max(quiz1, quiz2);
+
+    total = 0.15 * gaa + Math.max(option1, option2);
+
+    // Add normal bonus if total is passing (≥40)
+    if (total >= 40) {
+      total += normalBonus;
+    }
+  }
+  // New courses - 2nd batch
+  else if (subject === 'algorithmic_thinking') {
+    // T = 0.2GAA + max(0.2Qz1 + 0.2Qz2 + 0.4F, 0.45F + 0.25max(Qz1, Qz2)) + Normal Bonus
+    const option1 = 0.2 * quiz1 + 0.2 * quiz2 + 0.4 * finalExam;
+    const option2 = 0.45 * finalExam + 0.25 * Math.max(quiz1, quiz2);
+
+    total = 0.2 * gaa + Math.max(option1, option2);
+
+    // Add normal bonus if total is passing (≥40)
+    if (total >= 40) {
+      total += normalBonus;
+    }
+  }
+  else if (subject === 'industry_4_0') {
+    // T = (Quiz Marks) + (Game Marks) + A + (Project Marks) + F + Game Bonus + Normal Bonus
+    // A = Best 2 out of 3 assignments (Assignment 1, 2, 3)
+
+    // Calculate best 2 out of 3 assignments
+    const assignments = [assignment1, assignment2, assignment3].sort((a, b) => b - a);
+    const bestTwoAssignments = assignments[0] + assignments[1];
+
+    // Project marks = Project Submission + Project Presentation
+    const projectMarks = projectSubmission + projectPresentation;
+
+    total = quizzes + game + bestTwoAssignments + projectMarks + finalExam;
+
+    // Add bonuses if total is passing (≥40)
+    if (total >= 40) {
+      total += gameBonus + normalBonus;
+    }
+  }
+  else if (subject === 'mathematical_thinking') {
+    // T = 0.1GAA + max(0.6F + 0.2max(Qz1, Qz2), 0.4F + 0.2Qz1 + 0.3Qz2) + Normal Bonus
+    const option1 = 0.6 * finalExam + 0.2 * Math.max(quiz1, quiz2);
+    const option2 = 0.4 * finalExam + 0.2 * quiz1 + 0.3 * quiz2;
+
+    total = 0.1 * gaa + Math.max(option1, option2);
+
+    // Add normal bonus if total is passing (≥40)
+    if (total >= 40) {
+      total += normalBonus;
+    }
+  }
+  else if (subject === 'linear_statistical_models') {
+    // T = 0.1GAA + max(0.6F + 0.2max(Qz1, Qz2), 0.4F + 0.25Qz1 + 0.25Qz2) + Normal Bonus
+    const option1 = 0.6 * finalExam + 0.2 * Math.max(quiz1, quiz2);
+    const option2 = 0.4 * finalExam + 0.25 * quiz1 + 0.25 * quiz2;
+
+    total = 0.1 * gaa + Math.max(option1, option2);
+
+    // Add normal bonus if total is passing (≥40)
+    if (total >= 40) {
+      total += normalBonus;
+    }
+  }
+  else if (subject === 'operating_systems') {
+    // T = 0.1GAA + 0.4F + 0.25Qz1 + 0.25Qz2 + Normal Bonus
+    total = 0.1 * gaa + 0.4 * finalExam + 0.25 * quiz1 + 0.25 * quiz2;
+
+    // Add normal bonus if total is passing (≥40)
+    if (total >= 40) {
+      total += normalBonus;
+    }
+  }
+  // Courses added in 3rd batch
+  else if (subject === 'special_topics_ml') {
+    // T = 0.1GAA + 0.2GPA + max(0.2Qz1 + 0.2Qz2, 0.3max(Qz1, Qz2)) + 0.3F + Normal Bonus
+    const quizOption1 = 0.2 * quiz1 + 0.2 * quiz2;
+    const quizOption2 = 0.3 * Math.max(quiz1, quiz2);
+
+    total = 0.1 * gaa + 0.2 * gpa + Math.max(quizOption1, quizOption2) + 0.3 * finalExam;
+
+    // Add normal bonus if total is passing (≥40)
+    if (total >= 40) {
+      total += normalBonus;
+    }
+  }
+  else if (subject === 'big_data_biological_networks') {
+    // T = 0.15GAA + max(0.2Qz1 + 0.2Qz2 + 0.45F, 0.5F + 0.25max(Qz1, Qz2)) + Normal Bonus
+    const option1 = 0.2 * quiz1 + 0.2 * quiz2 + 0.45 * finalExam;
+    const option2 = 0.5 * finalExam + 0.25 * Math.max(quiz1, quiz2);
+
+    total = 0.15 * gaa + Math.max(option1, option2);
+
+    // Add normal bonus if total is passing (≥40)
+    if (total >= 40) {
+      total += normalBonus;
+    }
+  }
+  else if (subject === 'large_language_models') {
+    // T = 0.05GAA + 0.35F + 0.3Qz1 + 0.3Qz2 + Bonus + Normal Bonus
+    total = 0.05 * gaa + 0.35 * finalExam + 0.3 * quiz1 + 0.3 * quiz2;
+
+    // Add bonuses if total is passing (≥40)
+    if (total >= 40) {
+      total += llmProgrammingBonus + normalBonus;
+    }
+  }
+
+  // Cap the total at 100
+  total = Math.min(total, 100);
+
+  // Round up the score
+  return roundUpScore(total);
+}
+
+/**
+ * Helper function for rounding scores
+ */
+function roundScore(score: number): number {
+  const integerPart = Math.floor(score);
+  const decimalPart = score - integerPart;
+  if (decimalPart > 0.5) {
+    return integerPart + 1;
+  }
+  return integerPart;
+}
+
+/**
+ * Calculate degree scores with dual display (actual vs +2% bonus)
+ * Returns both base score and score with +2% bonus
+ */
+export function calculateDegreeScores(params: DegreeParams): DegreeScoreResult {
+  const { subject } = params;
+
+  // Calculate base score using existing function logic (without roundUp)
+  // We need to recalculate without bonuses for base score to show actual computed value
+  const baseTotal = calculateDegreeTotalRaw(params);
+  const baseScore = roundScore(Math.min(baseTotal, 100));
+
+  // Add 2% bonus (capped at 100)
+  const bonusApplied = 2;
+  const finalScore = roundScore(Math.min(baseTotal + bonusApplied, 100));
+
+  // Get formula based on subject
+  const formula = getDegreeFormula(subject);
+
+  return {
+    baseScore,
+    finalScore,
+    bonusApplied,
+    formula
+  };
+}
+
+/**
+ * Calculate raw degree total (without rounding) for internal use
+ */
+function calculateDegreeTotalRaw(params: DegreeParams): number {
+  const {
+    subject,
+    gaa = 0,
+    gpa = 0,
+    quiz1 = 0,
+    quiz2 = 0,
+    quiz3 = 0,
+    finalExam = 0,
     normalBonus = 0,
     programmingBonus = 0,
     llmProgrammingBonus = 0,
@@ -77,257 +416,130 @@ export function calculateDegreeTotal(params: DegreeParams): number {
     ga = 0,
     project = 0
   } = params;
-  
+
   let total = 0;
-  
+
   if (subject === 'software_testing') {
-    // T = 0.1GAA + 0.4F + 0.25Qz1 + 0.25Qz2 + Normal Bonus
     total = 0.1 * gaa + 0.4 * finalExam + 0.25 * quiz1 + 0.25 * quiz2;
-    
-    // Add normal bonus if total is passing (≥40)
-    if (total >= 40) {
-      total += normalBonus;
-    }
-  } 
-  else if (subject === 'software_engineering') {
-    // T = 0.05GAA + 0.2Qz2 + 0.4F + 0.1GP1 + 0.1GP2 + 0.1PP + 0.05CP + Normal Bonus
+    if (total >= 40) total += normalBonus;
+  } else if (subject === 'software_engineering') {
     total = 0.05 * gaa + 0.2 * quiz2 + 0.4 * finalExam + 0.1 * gp1 + 0.1 * gp2 + 0.1 * pp + 0.05 * cp;
-    
-    // Add normal bonus if total is passing (≥40)
-    if (total >= 40) {
-      total += normalBonus;
-    }
-  }
-  else if (subject === 'deep_learning') {
-    // T = 0.1GAA + 0.4F + 0.25Qz1 + 0.25Qz2 + Programming Activity Bonus + Normal Bonus
+    if (total >= 40) total += normalBonus;
+  } else if (subject === 'deep_learning') {
+    total = 0.05 * gaa + 0.25 * quiz1 + 0.25 * quiz2 + 0.45 * finalExam;
+    if (total >= 40) total += programmingBonus + normalBonus;
+  } else if (subject === 'ai_search_methods') {
     total = 0.1 * gaa + 0.4 * finalExam + 0.25 * quiz1 + 0.25 * quiz2;
-    
-    // Add bonuses if total is passing (≥40)
-    if (total >= 40) {
-      total += programmingBonus + normalBonus;
-    }
-  }
-  else if (subject === 'ai_search_methods') {
-    // T = 0.1GAA + 0.4F + 0.25Qz1 + 0.25Qz2 + Programming Assignment Bonus + Normal Bonus
-    total = 0.1 * gaa + 0.4 * finalExam + 0.25 * quiz1 + 0.25 * quiz2;
-    
-    // Add bonuses if total is passing (≥40)
-    if (total >= 40) {
-      total += programmingBonus + normalBonus;
-    }
-  }
-  else if (subject === 'professional_growth') {
-    // T = 0.15GAA + 0.25GP + 0.25Qz2 + 0.35F + Normal Bonus
+    if (total >= 40) total += programmingBonus + normalBonus;
+  } else if (subject === 'professional_growth') {
     total = 0.15 * gaa + 0.25 * gp + 0.25 * quiz2 + 0.35 * finalExam;
-    
-    // Add normal bonus if total is passing (≥40)
-    if (total >= 40) {
-      total += normalBonus;
-    }
-  }
-  else if (subject === 'big_data') {
-    // T = 0.1GAA + 0.3F + 0.2OPPE1 + 0.4OPPE2 + Normal Bonus
+    if (total >= 40) total += normalBonus;
+  } else if (subject === 'big_data') {
     total = 0.1 * gaa + 0.3 * finalExam + 0.2 * oppe1 + 0.4 * oppe2;
-    
-    // Add normal bonus if total is passing (≥40)
-    if (total >= 40) {
-      total += normalBonus;
-    }
-  }
-  else if (subject === 'programming_in_c') {
-    // T = 0.05GAA + 0.1GAAP + 0.15Qz1 + 0.2OPPE1 + 0.2OPPE2 + 0.3F + Normal Bonus
-    total = 0.05 * gaa + 0.1 * gaap + 0.15 * quiz1 + 0.2 * oppe1 + 0.2 * oppe2 + 0.3 * finalExam;
-    
-    // Add normal bonus if total is passing (≥40)
-    if (total >= 40) {
-      total += normalBonus;
-    }
-  }
-  else if (subject === 'financial_forensics') {
-    // T = 0.1GAA + max(0.25Qz1 + 0.3GP1 + 0.35F, 0.5F + 0.3max(Qz1, GP1)) + Normal Bonus
+    if (total >= 40) total += normalBonus;
+  } else if (subject === 'programming_in_c') {
+    total = 0.1 * gaa + 0.2 * quiz1 + 0.2 * oppe1 + 0.2 * oppe2 + 0.3 * finalExam;
+    if (total >= 40) total += normalBonus;
+  } else if (subject === 'financial_forensics') {
     const option1 = 0.25 * quiz1 + 0.3 * gp1 + 0.35 * finalExam;
     const option2 = 0.5 * finalExam + 0.3 * Math.max(quiz1, gp1);
-    
     total = 0.1 * gaa + Math.max(option1, option2);
-    
-    // Add normal bonus if total is passing (≥40)
-    if (total >= 40) {
-      total += normalBonus;
-    }
-  }
-  else if (subject === 'nlp') {
-    // T = 0.1GAA + 0.5F + 0.2Qz1 + 0.2Qz2 + Normal Bonus
+    if (total >= 40) total += normalBonus;
+  } else if (subject === 'nlp') {
     total = 0.1 * gaa + 0.5 * finalExam + 0.2 * quiz1 + 0.2 * quiz2;
-    
-    // Add normal bonus if total is passing (≥40)
-    if (total >= 40) {
-      total += normalBonus;
-    }
-  }
-  else if (subject === 'corporate_finance') {
-    // T = 0.1GAA + 0.4F + 0.2Qz1 + 0.3Qz2 + Normal Bonus
+    if (total >= 40) total += normalBonus;
+  } else if (subject === 'corporate_finance') {
     total = 0.1 * gaa + 0.4 * finalExam + 0.2 * quiz1 + 0.3 * quiz2;
-    
-    // Add normal bonus if total is passing (≥40)
-    if (total >= 40) {
-      total += normalBonus;
-    }
-  }
-  // New courses
-  else if (subject === 'deep_learning_practice') {
-    // T = 0.2GA + 0.15Quiz1 + 0.15Quiz2 + 0.15Quiz3 + 0.2(Best of NPPE) + 0.15(Second Best of NPPE) + 0.1(Lowest NPPE) + Normal Bonus
-    
-    // Sort NPPEs in descending order
+    if (total >= 40) total += normalBonus;
+  } else if (subject === 'deep_learning_practice') {
     const nppeScores = [nppe1, nppe2, nppe3].sort((a, b) => b - a);
-    
-    total = 0.2 * ga + 0.15 * quiz1 + 0.15 * quiz2 + 0.15 * quiz3 + 
-            0.2 * nppeScores[0] + 0.15 * nppeScores[1] + 0.1 * nppeScores[2];
-    
-    // Add normal bonus if total is passing (≥40)
-    if (total >= 40) {
-      total += normalBonus;
-    }
-  }
-  else if (subject === 'deep_learning_cv') {
-    // T = 0.1GAA + 0.5F + max(0.2Qz1 + 0.2Qz2, 0.3max(Qz1, Qz2)) + Normal Bonus
+    total = 0.2 * ga + 0.15 * quiz1 + 0.15 * quiz2 + 0.15 * quiz3 +
+      0.2 * nppeScores[0] + 0.15 * nppeScores[1] + 0.1 * nppeScores[2];
+    if (total >= 40) total += normalBonus;
+  } else if (subject === 'deep_learning_cv') {
+    total = 0.1 * gaa + 0.4 * finalExam + 0.25 * quiz1 + 0.25 * quiz2;
+    if (total >= 40) total += normalBonus;
+  } else if (subject === 'data_visualization') {
     const option1 = 0.2 * quiz1 + 0.2 * quiz2;
     const option2 = 0.3 * Math.max(quiz1, quiz2);
-    
-    total = 0.1 * gaa + 0.5 * finalExam + Math.max(option1, option2);
-    
-    // Add normal bonus if total is passing (≥40)
-    if (total >= 40) {
-      total += normalBonus;
-    }
-  }
-  else if (subject === 'data_visualization') {
-    // T = 0.3GA + max(0.2Qz1 + 0.2Qz2, 0.3max(Qz1, Qz2)) + 0.3P + Bonus + Normal Bonus
-    const option1 = 0.2 * quiz1 + 0.2 * quiz2;
-    const option2 = 0.3 * Math.max(quiz1, quiz2);
-    
     total = 0.3 * ga + Math.max(option1, option2) + 0.3 * project;
-    
-    // Add bonuses if total is passing (≥40)
-    if (total >= 40) {
-      total += extraAssignmentBonus + normalBonus;
-    }
-  }
-  else if (subject === 'managerial_economics') {
-    // T = 0.15GAA + max(0.2Qz1 + 0.2Qz2 + 0.45F, 0.5F + 0.25max(Qz1, Qz2)) + Normal Bonus
+    if (total >= 40) total += extraAssignmentBonus + normalBonus;
+  } else if (subject === 'managerial_economics') {
     const option1 = 0.2 * quiz1 + 0.2 * quiz2 + 0.45 * finalExam;
     const option2 = 0.5 * finalExam + 0.25 * Math.max(quiz1, quiz2);
-    
     total = 0.15 * gaa + Math.max(option1, option2);
-    
-    // Add normal bonus if total is passing (≥40)
-    if (total >= 40) {
-      total += normalBonus;
-    }
-  }
-  // New courses - 2nd batch
-  else if (subject === 'algorithmic_thinking') {
-    // T = 0.2GAA + max(0.2Qz1 + 0.2Qz2 + 0.4F, 0.45F + 0.25max(Qz1, Qz2)) + Normal Bonus
+    if (total >= 40) total += normalBonus;
+  } else if (subject === 'algorithmic_thinking') {
     const option1 = 0.2 * quiz1 + 0.2 * quiz2 + 0.4 * finalExam;
     const option2 = 0.45 * finalExam + 0.25 * Math.max(quiz1, quiz2);
-    
     total = 0.2 * gaa + Math.max(option1, option2);
-    
-    // Add normal bonus if total is passing (≥40)
-    if (total >= 40) {
-      total += normalBonus;
-    }
-  }
-  else if (subject === 'industry_4_0') {
-    // T = (Quiz Marks) + (Game Marks) + A + (Project Marks) + F + Game Bonus + Normal Bonus
-    // A = Best 2 out of 3 assignments (Assignment 1, 2, 3)
-    
-    // Calculate best 2 out of 3 assignments
+    if (total >= 40) total += normalBonus;
+  } else if (subject === 'industry_4_0') {
     const assignments = [assignment1, assignment2, assignment3].sort((a, b) => b - a);
     const bestTwoAssignments = assignments[0] + assignments[1];
-    
-    // Project marks = Project Submission + Project Presentation
     const projectMarks = projectSubmission + projectPresentation;
-    
     total = quizzes + game + bestTwoAssignments + projectMarks + finalExam;
-    
-    // Add bonuses if total is passing (≥40)
-    if (total >= 40) {
-      total += gameBonus + normalBonus;
-    }
-  }
-  else if (subject === 'mathematical_thinking') {
-    // T = 0.1GAA + max(0.6F + 0.2max(Qz1, Qz2), 0.4F + 0.2Qz1 + 0.3Qz2) + Normal Bonus
+    if (total >= 40) total += gameBonus + normalBonus;
+  } else if (subject === 'mathematical_thinking') {
     const option1 = 0.6 * finalExam + 0.2 * Math.max(quiz1, quiz2);
     const option2 = 0.4 * finalExam + 0.2 * quiz1 + 0.3 * quiz2;
-    
     total = 0.1 * gaa + Math.max(option1, option2);
-    
-    // Add normal bonus if total is passing (≥40)
-    if (total >= 40) {
-      total += normalBonus;
-    }
-  }
-  else if (subject === 'linear_statistical_models') {
-    // T = 0.1GAA + max(0.6F + 0.2max(Qz1, Qz2), 0.4F + 0.25Qz1 + 0.25Qz2) + Normal Bonus
+    if (total >= 40) total += normalBonus;
+  } else if (subject === 'linear_statistical_models') {
     const option1 = 0.6 * finalExam + 0.2 * Math.max(quiz1, quiz2);
     const option2 = 0.4 * finalExam + 0.25 * quiz1 + 0.25 * quiz2;
-    
     total = 0.1 * gaa + Math.max(option1, option2);
-    
-    // Add normal bonus if total is passing (≥40)
-    if (total >= 40) {
-      total += normalBonus;
-    }
-  }
-  else if (subject === 'operating_systems') {
-    // T = 0.1GAA + 0.4F + 0.25Qz1 + 0.25Qz2 + Normal Bonus
+    if (total >= 40) total += normalBonus;
+  } else if (subject === 'operating_systems') {
     total = 0.1 * gaa + 0.4 * finalExam + 0.25 * quiz1 + 0.25 * quiz2;
-    
-    // Add normal bonus if total is passing (≥40)
-    if (total >= 40) {
-      total += normalBonus;
-    }
-  }
-  // Courses added in 3rd batch
-  else if (subject === 'special_topics_ml') {
-    // T = 0.1GAA + 0.2GPA + max(0.2Qz1 + 0.2Qz2, 0.3max(Qz1, Qz2)) + 0.3F + Normal Bonus
+    if (total >= 40) total += normalBonus;
+  } else if (subject === 'special_topics_ml') {
     const quizOption1 = 0.2 * quiz1 + 0.2 * quiz2;
     const quizOption2 = 0.3 * Math.max(quiz1, quiz2);
-    
     total = 0.1 * gaa + 0.2 * gpa + Math.max(quizOption1, quizOption2) + 0.3 * finalExam;
-    
-    // Add normal bonus if total is passing (≥40)
-    if (total >= 40) {
-      total += normalBonus;
-    }
-  }
-  else if (subject === 'big_data_biological_networks') {
-    // T = 0.15GAA + max(0.2Qz1 + 0.2Qz2 + 0.45F, 0.5F + 0.25max(Qz1, Qz2)) + Normal Bonus
+    if (total >= 40) total += normalBonus;
+  } else if (subject === 'big_data_biological_networks') {
     const option1 = 0.2 * quiz1 + 0.2 * quiz2 + 0.45 * finalExam;
     const option2 = 0.5 * finalExam + 0.25 * Math.max(quiz1, quiz2);
-    
     total = 0.15 * gaa + Math.max(option1, option2);
-    
-    // Add normal bonus if total is passing (≥40)
-    if (total >= 40) {
-      total += normalBonus;
-    }
+    if (total >= 40) total += normalBonus;
+  } else if (subject === 'large_language_models') {
+    total = 0.05 * gaa + 0.35 * finalExam + 0.3 * quiz1 + 0.3 * quiz2;
+    if (total >= 40) total += llmProgrammingBonus + normalBonus;
   }
-  else if (subject === 'large_language_models') {
-    // T = 0.1GAA + 0.4F + 0.25Qz1 + 0.25Qz2 + Bonus + Normal Bonus
-    total = 0.1 * gaa + 0.4 * finalExam + 0.25 * quiz1 + 0.25 * quiz2;
-    
-    // Add bonuses if total is passing (≥40)
-    if (total >= 40) {
-      total += llmProgrammingBonus + normalBonus;
-    }
-  }
-  
-  // Cap the total at 100
-  total = Math.min(total, 100);
-  
-  // Round up the score
-  return roundUpScore(total);
+
+  return total;
+}
+
+/**
+ * Get formula string for degree subject
+ */
+function getDegreeFormula(subject: string): string {
+  const formulas: Record<string, string> = {
+    'software_testing': 'T = 0.1×GAA + 0.4×F + 0.25×Qz1 + 0.25×Qz2 + Bonus',
+    'software_engineering': 'T = 0.05×GAA + 0.2×Qz2 + 0.4×F + 0.1×GP1 + 0.1×GP2 + 0.1×PP + 0.05×CP + Bonus',
+    'deep_learning': 'T = 0.05×GAA + 0.25×Qz1 + 0.25×Qz2 + 0.45×F + Bonus',
+    'ai_search_methods': 'T = 0.1×GAA + 0.4×F + 0.25×Qz1 + 0.25×Qz2 + Bonus',
+    'professional_growth': 'T = 0.15×GAA + 0.25×GP + 0.25×Qz2 + 0.35×F + Bonus',
+    'big_data': 'T = 0.1×GAA + 0.3×F + 0.2×OPPE1 + 0.4×OPPE2 + Bonus',
+    'programming_in_c': 'T = 0.1×GAA + 0.2×Qz1 + 0.2×OPPE1 + 0.2×OPPE2 + 0.3×F + Bonus',
+    'financial_forensics': 'T = 0.1×GAA + max(0.25×Qz1 + 0.3×GP1 + 0.35×F, 0.5×F + 0.3×max(Qz1,GP1)) + Bonus',
+    'nlp': 'T = 0.1×GAA + 0.5×F + 0.2×Qz1 + 0.2×Qz2 + Bonus',
+    'corporate_finance': 'T = 0.1×GAA + 0.4×F + 0.2×Qz1 + 0.3×Qz2 + Bonus',
+    'deep_learning_practice': 'T = 0.2×GA + 0.15×Qz1 + 0.15×Qz2 + 0.15×Qz3 + 0.2×Best NPPE + 0.15×2nd NPPE + 0.1×3rd NPPE + Bonus',
+    'deep_learning_cv': 'T = 0.1×GAA + 0.4×F + 0.25×Qz1 + 0.25×Qz2 + Bonus',
+    'data_visualization': 'T = 0.3×GA + max(0.2×Qz1 + 0.2×Qz2, 0.3×max(Qz1,Qz2)) + 0.3×P + Bonus',
+    'managerial_economics': 'T = 0.15×GAA + max(0.2×Qz1 + 0.2×Qz2 + 0.45×F, 0.5×F + 0.25×max(Qz1,Qz2)) + Bonus',
+    'algorithmic_thinking': 'T = 0.2×GAA + max(0.2×Qz1 + 0.2×Qz2 + 0.4×F, 0.45×F + 0.25×max(Qz1,Qz2)) + Bonus',
+    'industry_4_0': 'T = Quiz + Game + Best2of3 Assignments + Project + F + Bonus',
+    'mathematical_thinking': 'T = 0.1×GAA + max(0.6×F + 0.2×max(Qz1,Qz2), 0.4×F + 0.2×Qz1 + 0.3×Qz2) + Bonus',
+    'linear_statistical_models': 'T = 0.1×GAA + max(0.6×F + 0.2×max(Qz1,Qz2), 0.4×F + 0.25×Qz1 + 0.25×Qz2) + Bonus',
+    'operating_systems': 'T = 0.1×GAA + 0.4×F + 0.25×Qz1 + 0.25×Qz2 + Bonus',
+    'special_topics_ml': 'T = 0.1×GAA + 0.2×GPA + max(0.2×Qz1 + 0.2×Qz2, 0.3×max(Qz1,Qz2)) + 0.3×F + Bonus',
+    'big_data_biological_networks': 'T = 0.15×GAA + max(0.2×Qz1 + 0.2×Qz2 + 0.45×F, 0.5×F + 0.25×max(Qz1,Qz2)) + Bonus',
+    'large_language_models': 'T = 0.05×GAA + 0.35×F + 0.3×Qz1 + 0.3×Qz2 + Bonus'
+  };
+  return formulas[subject] || 'Standard formula';
 }
 
 /**
@@ -336,15 +548,15 @@ export function calculateDegreeTotal(params: DegreeParams): number {
  */
 export function calculateDegreeCGPA(courses: CourseGrade[]): number {
   if (courses.length === 0) return 0;
-  
+
   let totalCredits = 0;
   let totalGradePoints = 0;
-  
+
   courses.forEach(course => {
     totalCredits += course.credits;
     totalGradePoints += course.gradePoint * course.credits;
   });
-  
+
   return totalGradePoints / totalCredits;
 }
 
@@ -424,7 +636,7 @@ export function getSubjectDetails(subject: string) {
       return {
         code: 'DGPC',
         name: 'Programming in C',
-        requiredFields: ['gaa', 'gaap', 'quiz1', 'oppe1', 'oppe2', 'finalExam', 'normalBonus']
+        requiredFields: ['gaa', 'quiz1', 'oppe1', 'oppe2', 'finalExam', 'normalBonus']
       };
     case 'financial_forensics':
       return {

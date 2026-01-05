@@ -87,12 +87,12 @@ export function getCoursesForLevel(level: ProgramLevel): CourseData[] {
   return courses;
 }
 
-// Credits constants for each level
+// Credits constants for each level (official IITM BS Data Science structure)
 export const LEVEL_CREDITS: Record<ProgramLevel, number> = {
-  foundation: 32,  // 8 subjects × 4 credits
-  diploma: 50,     // 13 subjects (varied credits)
-  bsc: 32,         // BSc level courses
-  bs: 18,          // BS level courses
+  foundation: 32,  // 8 courses × 4 credits
+  diploma: 54,     // Programming (27) + Data Science (27)
+  bsc: 28,         // BSc level courses
+  bs: 28,          // BS level courses
 };
 
 // Calculate combined CGPA with direct previous level CGPA input
@@ -217,12 +217,12 @@ export const levelDisplayNames: Record<ProgramLevel, string> = {
   bs: 'BS Degree',
 };
 
-// Program level descriptions
+// Program level descriptions (with accurate cumulative credits)
 export const levelDescriptions: Record<ProgramLevel, string> = {
   foundation: '8 courses (32 credits) - Entry level program',
-  diploma: 'Foundation + 8 Diploma courses (64 credits total)',
-  bsc: 'Foundation + Diploma + BSc courses (96 credits total)',
-  bs: 'Complete BS degree with all 4 levels (132 credits total)',
+  diploma: 'Both diplomas (54 credits) - Cumulative: 86 credits',
+  bsc: 'BSc level courses (28 credits) - Cumulative: 114 credits',
+  bs: 'BS level courses (28 credits) - Cumulative: 142 credits',
 };
 
 // Generate unique ID

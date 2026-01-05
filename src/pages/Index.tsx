@@ -164,31 +164,42 @@ const Index = () => {
             </Link>
           </motion.div>
 
-          {/* Quick Stats */}
+          {/* 2026 Update Announcement */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, delay: 0.4 }}
-            className="mt-16 grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6 max-w-3xl mx-auto"
+            className="mt-16 max-w-4xl mx-auto"
           >
-            {[
-              { label: "Tools", value: "6+" },
-              { label: "Students", value: "500+" },
-              { label: "Roadmaps", value: "5" },
-              { label: "Rating", value: "4.9" },
-            ].map((stat) => (
-              <div
-                key={stat.label}
-                className="bg-white/70 dark:bg-white/5 backdrop-blur-md rounded-xl p-4 border border-gray-200 dark:border-white/10 shadow-sm dark:shadow-none hover:scale-105 transition-transform duration-200"
-              >
-                <div className="text-2xl md:text-3xl font-bold text-gray-900 dark:text-white">
-                  {stat.value}
-                </div>
-                <div className="text-sm text-gray-600 dark:text-gray-300">
-                  {stat.label}
-                </div>
+            <div className="bg-white/5 backdrop-blur-xl rounded-2xl p-6 md:p-8 border border-white/10 shadow-2xl">
+              <div className="flex items-center justify-center gap-3 mb-4">
+                <div className="w-8 h-[2px] bg-gradient-to-r from-transparent to-blue-500"></div>
+                <span className="px-4 py-1.5 text-xs font-bold bg-blue-600/90 text-white rounded-md uppercase tracking-widest">
+                  2026 Updated
+                </span>
+                <div className="w-8 h-[2px] bg-gradient-to-l from-transparent to-blue-500"></div>
               </div>
-            ))}
+              <h3 className="text-2xl md:text-3xl font-bold text-center text-white mb-3 tracking-tight">
+                All Tools Updated for 2026 Grading System
+              </h3>
+              <p className="text-center text-gray-400 text-base md:text-lg font-medium mb-5">
+                Grade Calculator  •  Marks Predictor  •  CGPA Calculator
+              </p>
+              <div className="flex flex-wrap justify-center gap-4 text-sm">
+                <span className="inline-flex items-center gap-2 px-4 py-2 bg-white/5 rounded-lg font-medium text-gray-300 border border-white/10">
+                  <svg className="w-4 h-4 text-blue-400" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" /></svg>
+                  100% Accurate
+                </span>
+                <span className="inline-flex items-center gap-2 px-4 py-2 bg-white/5 rounded-lg font-medium text-gray-300 border border-white/10">
+                  <svg className="w-4 h-4 text-blue-400" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" /></svg>
+                  Official IITM Formulas
+                </span>
+                <span className="inline-flex items-center gap-2 px-4 py-2 bg-white/5 rounded-lg font-medium text-gray-300 border border-white/10">
+                  <svg className="w-4 h-4 text-blue-400" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" /></svg>
+                  Up to Date
+                </span>
+              </div>
+            </div>
           </motion.div>
         </div>
 
@@ -256,6 +267,7 @@ const Index = () => {
       </section>
 
       {/* How It Works Section */}
+      {/* How It Works Section */}
       <section className="py-20 px-4 relative overflow-hidden">
         <div className="max-w-6xl mx-auto">
           {/* Section Header */}
@@ -265,11 +277,12 @@ const Index = () => {
             viewport={{ once: true }}
             className="text-center mb-16"
           >
-            <span className="inline-block px-4 py-1.5 mb-4 text-sm font-medium text-purple-600 dark:text-purple-400 bg-purple-50 dark:bg-purple-900/30 rounded-full">
-              🚀 Simple Process
+            <span className="inline-flex items-center gap-2 px-4 py-1.5 mb-4 text-sm font-medium text-blue-400 bg-blue-500/10 rounded-md border border-blue-500/20">
+              <Zap className="w-4 h-4" />
+              Simple Process
             </span>
             <h2 className="text-4xl md:text-5xl font-bold text-gray-900 dark:text-white mb-4">
-              How It <span className="text-gradient-premium">Works</span>
+              How It <span className="text-blue-500">Works</span>
             </h2>
             <p className="text-lg text-gray-600 dark:text-gray-400 max-w-2xl mx-auto">
               Get started in minutes with our intuitive tools built on official IITM grading criteria.
@@ -279,7 +292,7 @@ const Index = () => {
           {/* Steps */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8 relative">
             {/* Connector Line (Desktop) */}
-            <div className="hidden md:block absolute top-24 left-[16%] right-[16%] h-0.5 bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500" />
+            <div className="hidden md:block absolute top-24 left-[16%] right-[16%] h-[1px] bg-gradient-to-r from-transparent via-blue-500/50 to-transparent" />
 
             {[
               { step: 1, title: "Select Your Level", desc: "Choose Foundation, Diploma, or Degree program", icon: GraduationCap },
@@ -294,10 +307,15 @@ const Index = () => {
                 transition={{ delay: index * 0.2, duration: 0.5 }}
                 className="relative text-center"
               >
-                {/* Step Circle */}
+                {/* Step Number Badge */}
+                <div className="absolute -top-2 left-1/2 -translate-x-1/2 z-20 w-6 h-6 bg-gray-900 dark:bg-gray-800 border border-blue-500/50 rounded-full flex items-center justify-center text-xs font-bold text-blue-400">
+                  {item.step}
+                </div>
+
+                {/* Step Icon */}
                 <motion.div
-                  className="relative z-10 w-16 h-16 mx-auto mb-6 rounded-2xl bg-gradient-to-br from-blue-600 to-purple-600 flex items-center justify-center text-white font-bold text-xl shadow-lg"
-                  whileHover={{ scale: 1.1, rotate: 5 }}
+                  className="relative z-10 w-16 h-16 mx-auto mb-6 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-blue-400 shadow-lg backdrop-blur-sm"
+                  whileHover={{ scale: 1.05, borderColor: 'rgba(59, 130, 246, 0.5)' }}
                   transition={{ type: "spring", stiffness: 300 }}
                 >
                   <item.icon className="w-7 h-7" />
@@ -315,10 +333,11 @@ const Index = () => {
         </div>
       </section>
 
-      {/* CTA Section with Aurora Effect */}
+      {/* CTA Section */}
       <section className="py-24 px-4 relative overflow-hidden">
-        {/* Aurora Background */}
-        <div className="aurora-bg" />
+        {/* Subtle Background */}
+        <div className="absolute inset-0 bg-gradient-to-br from-gray-900 via-blue-950 to-gray-900" />
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-blue-600/10 via-transparent to-transparent" />
 
         {/* Content */}
         <motion.div
@@ -327,25 +346,16 @@ const Index = () => {
           viewport={{ once: true }}
           className="relative z-10 max-w-4xl mx-auto text-center"
         >
-          <motion.div
-            animate={{
-              boxShadow: [
-                "0 0 20px rgba(59, 130, 246, 0.3)",
-                "0 0 40px rgba(59, 130, 246, 0.5)",
-                "0 0 20px rgba(59, 130, 246, 0.3)",
-              ]
-            }}
-            transition={{ duration: 2, repeat: Infinity }}
-            className="inline-block px-4 py-1.5 mb-6 text-sm font-medium text-white bg-white/10 backdrop-blur-sm rounded-full border border-white/20"
-          >
-            🎓 Start Your Journey Today
-          </motion.div>
+          <div className="inline-flex items-center gap-2 px-4 py-1.5 mb-6 text-sm font-medium text-white/80 bg-white/5 backdrop-blur-sm rounded-md border border-white/10">
+            <GraduationCap className="w-4 h-4" />
+            Start Your Journey Today
+          </div>
 
-          <h2 className="text-4xl md:text-6xl font-bold text-white mb-6 neon-glow">
+          <h2 className="text-4xl md:text-6xl font-bold text-white mb-6">
             Ready to Excel at IITM?
           </h2>
 
-          <p className="text-xl text-white/80 mb-10 max-w-2xl mx-auto">
+          <p className="text-xl text-white/60 mb-10 max-w-2xl mx-auto">
             Join hundreds of students using our tools to track their academic progress and achieve their goals.
           </p>
 
@@ -353,7 +363,7 @@ const Index = () => {
             <Link to="/grade-calculator">
               <Button
                 size="lg"
-                className="group px-8 py-6 text-lg font-semibold bg-white text-gray-900 hover:bg-gray-100 rounded-xl shadow-xl hover:shadow-2xl transition-all"
+                className="group px-8 py-6 text-lg font-semibold bg-blue-600 hover:bg-blue-500 text-white rounded-xl shadow-lg hover:shadow-blue-500/25 transition-all"
               >
                 Calculate Your Grades
                 <ChevronRight className="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform" />
@@ -363,7 +373,7 @@ const Index = () => {
               <Button
                 variant="outline"
                 size="lg"
-                className="px-8 py-6 text-lg font-semibold border-2 border-white/30 text-white hover:bg-white/10 rounded-xl"
+                className="px-8 py-6 text-lg font-semibold border border-white/20 text-white hover:bg-white/5 rounded-xl"
               >
                 Try CGPA Calculator
               </Button>

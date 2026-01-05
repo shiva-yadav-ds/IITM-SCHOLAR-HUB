@@ -48,6 +48,7 @@ export interface FoundationScoreResult {
 
 /**
  * Calculate foundation scores based on new formulas (no GAA)
+ * Now includes +2% universal bonus display
  * 
  * New Formulas:
  * - Standard subjects: T = max(0.6F + 0.3*max(Qz1, Qz2), 0.45F + 0.25*Qz1 + 0.3*Qz2)
@@ -66,14 +67,14 @@ export function calculateFoundationScores(params: FoundationParams): FoundationS
     pe2 = 0
   } = params;
 
-  let baseScore = 0;
-  let bonusApplied = 0;
+  let calculatedScore = 0;
+  let subjectBonus = 0;
   let formula = '';
 
   // Python Programming - completely different formula
   if (subject === 'BSCCS1001') {
     // T = 0.15*Qz1 + 0.4*F + 0.25*max(PE1, PE2) + 0.2*min(PE1, PE2)
-    baseScore = 0.15 * quiz1 + 0.4 * finalExam +
+    calculatedScore = 0.15 * quiz1 + 0.4 * finalExam +
       0.25 * Math.max(pe1, pe2) + 0.2 * Math.min(pe1, pe2);
     formula = 'T = 0.15×Qz1 + 0.4×F + 0.25×max(PE1,PE2) + 0.2×min(PE1,PE2)';
   }
@@ -82,54 +83,58 @@ export function calculateFoundationScores(params: FoundationParams): FoundationS
     const maxQuizScore = Math.max(quiz1, quiz2);
     const formula1 = 0.6 * finalExam + 0.3 * maxQuizScore;
     const formula2 = 0.45 * finalExam + 0.25 * quiz1 + 0.3 * quiz2;
-    baseScore = Math.max(formula1, formula2);
+    calculatedScore = Math.max(formula1, formula2);
 
     // Bonus only applied when passing (T >= 40)
-    if (baseScore >= 40) {
-      bonusApplied = Math.min(5, extraActivityBonus);
+    if (calculatedScore >= 40) {
+      subjectBonus = Math.min(5, extraActivityBonus);
     }
-    formula = 'T = max(0.6F + 0.3×max(Qz1,Qz2), 0.45F + 0.25×Qz1 + 0.3×Qz2) + Bonus (up to 5)';
+    formula = 'T = max(0.6F + 0.3×max(Qz1,Qz2), 0.45F + 0.25×Qz1 + 0.3×Qz2) + Bonus';
   }
   // Mathematics 2 - has extra activity bonus (up to 6)
   else if (subject === 'BSCCS1006') {
     const maxQuizScore = Math.max(quiz1, quiz2);
     const formula1 = 0.6 * finalExam + 0.3 * maxQuizScore;
     const formula2 = 0.45 * finalExam + 0.25 * quiz1 + 0.3 * quiz2;
-    baseScore = Math.max(formula1, formula2);
+    calculatedScore = Math.max(formula1, formula2);
 
     // Bonus applied (capped to 100)
-    bonusApplied = Math.min(6, extraActivityBonus);
-    formula = 'T = max(0.6F + 0.3×max(Qz1,Qz2), 0.45F + 0.25×Qz1 + 0.3×Qz2) + Bonus (up to 6)';
+    subjectBonus = Math.min(6, extraActivityBonus);
+    formula = 'T = max(0.6F + 0.3×max(Qz1,Qz2), 0.45F + 0.25×Qz1 + 0.3×Qz2) + Bonus';
   }
   // Statistics 2 - has extra activity bonus (up to 5)
   else if (subject === 'BSCCS1007') {
     const maxQuizScore = Math.max(quiz1, quiz2);
     const formula1 = 0.6 * finalExam + 0.3 * maxQuizScore;
     const formula2 = 0.45 * finalExam + 0.25 * quiz1 + 0.3 * quiz2;
-    baseScore = Math.max(formula1, formula2);
+    calculatedScore = Math.max(formula1, formula2);
 
     // Bonus only applied when passing (T >= 40)
-    if (baseScore >= 40) {
-      bonusApplied = Math.min(5, extraActivityBonus);
+    if (calculatedScore >= 40) {
+      subjectBonus = Math.min(5, extraActivityBonus);
     }
-    formula = 'T = max(0.6F + 0.3×max(Qz1,Qz2), 0.45F + 0.25×Qz1 + 0.3×Qz2) + Bonus (up to 5)';
+    formula = 'T = max(0.6F + 0.3×max(Qz1,Qz2), 0.45F + 0.25×Qz1 + 0.3×Qz2) + Bonus';
   }
   // All other subjects: Math 1, English 1, Computational Thinking, English 2
   else {
     const maxQuizScore = Math.max(quiz1, quiz2);
     const formula1 = 0.6 * finalExam + 0.3 * maxQuizScore;
     const formula2 = 0.45 * finalExam + 0.25 * quiz1 + 0.3 * quiz2;
-    baseScore = Math.max(formula1, formula2);
+    calculatedScore = Math.max(formula1, formula2);
     formula = 'T = max(0.6F + 0.3×max(Qz1,Qz2), 0.45F + 0.25×Qz1 + 0.3×Qz2)';
   }
 
-  // Calculate final score (capped at 100)
-  const finalScore = Math.min(100, baseScore + bonusApplied);
+  // Base score = calculated score + subject-specific bonus (this is the actual score)
+  const baseScore = Math.min(100, calculatedScore + subjectBonus);
+
+  // Final score = base score + universal 2% bonus (capped at 100)
+  const universalBonus = 2;
+  const finalScore = Math.min(100, baseScore + universalBonus);
 
   return {
     baseScore: roundScore(baseScore),
     finalScore: roundScore(finalScore),
-    bonusApplied,
+    bonusApplied: universalBonus,
     formula
   };
 }

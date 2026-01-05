@@ -83,7 +83,7 @@ export function getRequiredFields(subject: string): string[] {
     case 'IBD': // Introduction to Big Data
       return ['gaa', 'oppe1', 'oppe2'];
     case 'PC': // Programming in C
-      return ['gaa', 'gaap', 'quiz1', 'oppe1', 'oppe2'];
+      return ['gaa', 'quiz1', 'oppe1', 'oppe2'];
     case 'FF': // Financial Forensics
       return ['gaa', 'quiz1', 'gp1'];
     case 'INLP': // Introduction to Natural Language Processing
@@ -123,29 +123,29 @@ export function getRequiredFields(subject: string): string[] {
  * Check eligibility based on course requirements
  */
 function checkEligibility(input: DegreePredictorInput): { eligible: boolean, reason: string } {
-  const { 
-    subject, 
-    gaa = 0, 
-    gaap = 0, 
-    quiz1 = 0, 
-    quiz2 = 0, 
+  const {
+    subject,
+    gaa = 0,
+    gaap = 0,
+    quiz1 = 0,
+    quiz2 = 0,
     quiz3 = 0,
-    gp1 = 0, 
-    oppe1 = 0, 
+    gp1 = 0,
+    oppe1 = 0,
     oppe2 = 0,
     gp = 0
   } = input;
-  
+
   // Common eligibility rules for most courses
   // Best 5 out of first 7 weeks GAA should be >= 40/100
   const weeklyAssessmentAvg = gaa;
   const hasAttendedQuiz = quiz1 > 0 || quiz2 > 0 || quiz3 > 0;
-  
+
   // Base eligibility check that applies to most subjects
   if (weeklyAssessmentAvg < 40) {
     return { eligible: false, reason: 'Best 5 out of the first 7 weeks\' GAA must be at least 40/100' };
   }
-  
+
   // Subject-specific eligibility rules
   switch (subject) {
     case 'ST':
@@ -167,14 +167,14 @@ function checkEligibility(input: DegreePredictorInput): { eligible: boolean, rea
         return { eligible: false, reason: 'Must attend at least one quiz' };
       }
       break;
-      
+
     case 'SE':
       // Software Engineering specific rules
       if (gp1 <= 0) {
         return { eligible: false, reason: 'Submission of Group Project Milestones 1-3 is required' };
       }
       break;
-      
+
     case 'IBD':
     case 'PC':
       // Programming subjects might require scoring in programming exams
@@ -182,14 +182,14 @@ function checkEligibility(input: DegreePredictorInput): { eligible: boolean, rea
         return { eligible: false, reason: 'Must score at least 40/100 in one of the programming exams' };
       }
       break;
-      
+
     case 'FF':
       // Financial Forensics has a higher GAA requirement
       if (weeklyAssessmentAvg < 50) {
         return { eligible: false, reason: 'Best 5 out of the first 7 weeks\' GAA must be at least 50/100' };
       }
       break;
-      
+
     case 'DV':
       // Data Visualization requires project score > 50
       if (gp < 50) {
@@ -199,7 +199,7 @@ function checkEligibility(input: DegreePredictorInput): { eligible: boolean, rea
         return { eligible: false, reason: 'Must attend at least one quiz' };
       }
       break;
-      
+
     case 'I4':
       // Industry 4.0 requires at least one quiz and project participation
       if (!hasAttendedQuiz) {
@@ -209,7 +209,7 @@ function checkEligibility(input: DegreePredictorInput): { eligible: boolean, rea
         return { eligible: false, reason: 'Participation in the project is required' };
       }
       break;
-      
+
     case 'STML':
       // Special Topics in ML requires at least one quiz
       if (!hasAttendedQuiz) {
@@ -217,7 +217,7 @@ function checkEligibility(input: DegreePredictorInput): { eligible: boolean, rea
       }
       break;
   }
-  
+
   return { eligible: true, reason: '' };
 }
 
@@ -226,15 +226,15 @@ function checkEligibility(input: DegreePredictorInput): { eligible: boolean, rea
  */
 function calculateST(gaa: number, quiz1: number, quiz2: number, targetScore: number): number {
   // T = 0.1×GAA + 0.4×F + 0.25×Qz1 + 0.25×Qz2
-  
+
   const gaaComponent = 0.1 * gaa;
   const quiz1Component = 0.25 * quiz1;
   const quiz2Component = 0.25 * quiz2;
-  
+
   // T = 0.1×GAA + 0.4×F + 0.25×Qz1 + 0.25×Qz2
   // T - 0.1×GAA - 0.25×Qz1 - 0.25×Qz2 = 0.4×F
   // F = (T - 0.1×GAA - 0.25×Qz1 - 0.25×Qz2) / 0.4
-  
+
   return (targetScore - gaaComponent - quiz1Component - quiz2Component) / 0.4;
 }
 
@@ -243,18 +243,18 @@ function calculateST(gaa: number, quiz1: number, quiz2: number, targetScore: num
  */
 function calculateSE(gaa: number, quiz2: number, gp1: number, gp2: number, pp: number, cp: number, targetScore: number): number {
   // T = 0.05×GAA + 0.2×Qz2 + 0.4×F + 0.1×GP1 + 0.1×GP2 + 0.1×PP + 0.05×CP
-  
+
   const gaaComponent = 0.05 * gaa;
   const quiz2Component = 0.2 * quiz2;
   const gp1Component = 0.1 * gp1;
   const gp2Component = 0.1 * gp2;
   const ppComponent = 0.1 * pp;
   const cpComponent = 0.05 * cp;
-  
+
   // T = 0.05×GAA + 0.2×Qz2 + 0.4×F + 0.1×GP1 + 0.1×GP2 + 0.1×PP + 0.05×CP
   // T - 0.05×GAA - 0.2×Qz2 - 0.1×GP1 - 0.1×GP2 - 0.1×PP - 0.05×CP = 0.4×F
   // F = (T - 0.05×GAA - 0.2×Qz2 - 0.1×GP1 - 0.1×GP2 - 0.1×PP - 0.05×CP) / 0.4
-  
+
   return (targetScore - gaaComponent - quiz2Component - gp1Component - gp2Component - ppComponent - cpComponent) / 0.4;
 }
 
@@ -262,28 +262,18 @@ function calculateSE(gaa: number, quiz2: number, gp1: number, gp2: number, pp: n
  * Calculate required final exam score for Deep Learning
  */
 function calculateDL(gaa: number, quiz1: number, quiz2: number, targetScore: number): number {
-  // T = 0.1×GAA + max(0.4×F + 0.25×Qz1 + 0.25×Qz2, 0.5×F + 0.3×max(Qz1, Qz2))
-  
-  const gaaComponent = 0.1 * gaa;
-  
-  // We need to adjust the target score to account for bonus marks
-  const adjustedTarget = targetScore;
-  
-  // Now we need to solve for F in each of the max() formulas
-  
-  // Formula 1: T = 0.1×GAA + 0.4×F + 0.25×Qz1 + 0.25×Qz2
-  // adjustedTarget - 0.1×GAA - 0.25×Qz1 - 0.25×Qz2 = 0.4×F
-  // F = (adjustedTarget - 0.1×GAA - 0.25×Qz1 - 0.25×Qz2) / 0.4
-  const formula1 = (adjustedTarget - gaaComponent - 0.25 * quiz1 - 0.25 * quiz2) / 0.4;
-  
-  // Formula 2: T = 0.1×GAA + 0.5×F + 0.3×max(Qz1, Qz2)
-  // adjustedTarget - 0.1×GAA - 0.3×max(Qz1, Qz2) = 0.5×F
-  // F = (adjustedTarget - 0.1×GAA - 0.3×max(Qz1, Qz2)) / 0.5
-  const maxQuiz = Math.max(quiz1, quiz2);
-  const formula2 = (adjustedTarget - gaaComponent - 0.3 * maxQuiz) / 0.5;
-  
-  // We want the minimum F that satisfies either formula
-  return Math.min(formula1, formula2);
+  // T = 0.05×GAA + 0.25×Qz1 + 0.25×Qz2 + 0.45×F
+  // (Bonus marks not included as they are added after base score calculation)
+
+  const gaaComponent = 0.05 * gaa;
+  const quiz1Component = 0.25 * quiz1;
+  const quiz2Component = 0.25 * quiz2;
+
+  // T = 0.05×GAA + 0.25×Qz1 + 0.25×Qz2 + 0.45×F
+  // T - 0.05×GAA - 0.25×Qz1 - 0.25×Qz2 = 0.45×F
+  // F = (T - 0.05×GAA - 0.25×Qz1 - 0.25×Qz2) / 0.45
+
+  return (targetScore - gaaComponent - quiz1Component - quiz2Component) / 0.45;
 }
 
 /**
@@ -291,25 +281,25 @@ function calculateDL(gaa: number, quiz1: number, quiz2: number, targetScore: num
  */
 function calculateAIPS(gaa: number, quiz1: number, quiz2: number, targetScore: number): number {
   // T = 0.1×GAA + max(0.45×F + 0.35×max(Qz1, Qz2), 0.4×F + 0.25×Qz1 + 0.25×Qz2)
-  
+
   const gaaComponent = 0.1 * gaa;
-  
+
   // We need to adjust the target score to account for bonus marks
   const adjustedTarget = targetScore;
-  
+
   // Now we need to solve for F in each of the max() formulas
-  
+
   // Formula 1: T = 0.1×GAA + 0.45×F + 0.35×max(Qz1, Qz2)
   // adjustedTarget - 0.1×GAA - 0.35×max(Qz1, Qz2) = 0.45×F
   // F = (adjustedTarget - 0.1×GAA - 0.35×max(Qz1, Qz2)) / 0.45
   const maxQuiz = Math.max(quiz1, quiz2);
   const formula1 = (adjustedTarget - gaaComponent - 0.35 * maxQuiz) / 0.45;
-  
+
   // Formula 2: T = 0.1×GAA + 0.4×F + 0.25×Qz1 + 0.25×Qz2
   // adjustedTarget - 0.1×GAA - 0.25×Qz1 - 0.25×Qz2 = 0.4×F
   // F = (adjustedTarget - 0.1×GAA - 0.25×Qz1 - 0.25×Qz2) / 0.4
   const formula2 = (adjustedTarget - gaaComponent - 0.25 * quiz1 - 0.25 * quiz2) / 0.4;
-  
+
   // We want the minimum F that satisfies either formula
   return Math.min(formula1, formula2);
 }
@@ -319,15 +309,15 @@ function calculateAIPS(gaa: number, quiz1: number, quiz2: number, targetScore: n
  */
 function calculateSPG(gaa: number, gp: number, quiz2: number, targetScore: number): number {
   // T = 0.15×GAA + 0.25×GP + 0.25×Qz2 + 0.35×F
-  
+
   const gaaComponent = 0.15 * gaa;
   const gpComponent = 0.25 * gp;
   const quiz2Component = 0.25 * quiz2;
-  
+
   // T = 0.15×GAA + 0.25×GP + 0.25×Qz2 + 0.35×F
   // T - 0.15×GAA - 0.25×GP - 0.25×Qz2 = 0.35×F
   // F = (T - 0.15×GAA - 0.25×GP - 0.25×Qz2) / 0.35
-  
+
   return (targetScore - gaaComponent - gpComponent - quiz2Component) / 0.35;
 }
 
@@ -336,15 +326,15 @@ function calculateSPG(gaa: number, gp: number, quiz2: number, targetScore: numbe
  */
 function calculateIBD(gaa: number, oppe1: number, oppe2: number, targetScore: number): number {
   // T = 0.1×GAA + 0.3×F + 0.2×OPPE1 + 0.4×OPPE2
-  
+
   const gaaComponent = 0.1 * gaa;
   const oppe1Component = 0.2 * oppe1;
   const oppe2Component = 0.4 * oppe2;
-  
+
   // T = 0.1×GAA + 0.3×F + 0.2×OPPE1 + 0.4×OPPE2
   // T - 0.1×GAA - 0.2×OPPE1 - 0.4×OPPE2 = 0.3×F
   // F = (T - 0.1×GAA - 0.2×OPPE1 - 0.4×OPPE2) / 0.3
-  
+
   return (targetScore - gaaComponent - oppe1Component - oppe2Component) / 0.3;
 }
 
@@ -352,19 +342,18 @@ function calculateIBD(gaa: number, oppe1: number, oppe2: number, targetScore: nu
  * Calculate required final exam score for Programming in C
  */
 function calculatePC(gaa: number, gaap: number, quiz1: number, oppe1: number, oppe2: number, targetScore: number): number {
-  // T = 0.05×GAA + 0.1×GAAP + 0.15×Qz1 + 0.2×OPPE1 + 0.2×OPPE2 + 0.3×F
-  
-  const gaaComponent = 0.05 * gaa;
-  const gaapComponent = 0.1 * gaap;
-  const quiz1Component = 0.15 * quiz1;
+  // T = 0.10×GAA + 0.20×Qz1 + 0.20×OPPE1 + 0.20×OPPE2 + 0.30×F
+
+  const gaaComponent = 0.1 * gaa;
+  const quiz1Component = 0.2 * quiz1;
   const oppe1Component = 0.2 * oppe1;
   const oppe2Component = 0.2 * oppe2;
-  
-  // T = 0.05×GAA + 0.1×GAAP + 0.15×Qz1 + 0.2×OPPE1 + 0.2×OPPE2 + 0.3×F
-  // T - 0.05×GAA - 0.1×GAAP - 0.15×Qz1 - 0.2×OPPE1 - 0.2×OPPE2 = 0.3×F
-  // F = (T - 0.05×GAA - 0.1×GAAP - 0.15×Qz1 - 0.2×OPPE1 - 0.2×OPPE2) / 0.3
-  
-  return (targetScore - gaaComponent - gaapComponent - quiz1Component - oppe1Component - oppe2Component) / 0.3;
+
+  // T = 0.10×GAA + 0.20×Qz1 + 0.20×OPPE1 + 0.20×OPPE2 + 0.30×F
+  // T - 0.10×GAA - 0.20×Qz1 - 0.20×OPPE1 - 0.20×OPPE2 = 0.30×F
+  // F = (T - 0.10×GAA - 0.20×Qz1 - 0.20×OPPE1 - 0.20×OPPE2) / 0.30
+
+  return (targetScore - gaaComponent - quiz1Component - oppe1Component - oppe2Component) / 0.3;
 }
 
 /**
@@ -372,22 +361,22 @@ function calculatePC(gaa: number, gaap: number, quiz1: number, oppe1: number, op
  */
 function calculateFF(gaa: number, quiz1: number, gp1: number, targetScore: number): number {
   // T = 0.1×GAA + max(0.25×Qz1 + 0.3×GP1 + 0.35×F, 0.5×F + 0.3×max(Qz1, GP1))
-  
+
   const gaaComponent = 0.1 * gaa;
-  
+
   // Now we need to solve for F in each of the max() formulas
-  
+
   // Formula 1: T = 0.1×GAA + 0.25×Qz1 + 0.3×GP1 + 0.35×F
   // T - 0.1×GAA - 0.25×Qz1 - 0.3×GP1 = 0.35×F
   // F = (T - 0.1×GAA - 0.25×Qz1 - 0.3×GP1) / 0.35
   const formula1 = (targetScore - gaaComponent - 0.25 * quiz1 - 0.3 * gp1) / 0.35;
-  
+
   // Formula 2: T = 0.1×GAA + 0.5×F + 0.3×max(Qz1, GP1)
   // T - 0.1×GAA - 0.3×max(Qz1, GP1) = 0.5×F
   // F = (T - 0.1×GAA - 0.3×max(Qz1, GP1)) / 0.5
   const maxQuizGP = Math.max(quiz1, gp1);
   const formula2 = (targetScore - gaaComponent - 0.3 * maxQuizGP) / 0.5;
-  
+
   // We want the minimum F that satisfies either formula
   return Math.min(formula1, formula2);
 }
@@ -397,15 +386,15 @@ function calculateFF(gaa: number, quiz1: number, gp1: number, targetScore: numbe
  */
 function calculateINLP(gaa: number, quiz1: number, quiz2: number, targetScore: number): number {
   // T = 0.1×GAA + 0.5×F + 0.2×Qz1 + 0.2×Qz2
-  
+
   const gaaComponent = 0.1 * gaa;
   const quiz1Component = 0.2 * quiz1;
   const quiz2Component = 0.2 * quiz2;
-  
+
   // T = 0.1×GAA + 0.5×F + 0.2×Qz1 + 0.2×Qz2
   // T - 0.1×GAA - 0.2×Qz1 - 0.2×Qz2 = 0.5×F
   // F = (T - 0.1×GAA - 0.2×Qz1 - 0.2×Qz2) / 0.5
-  
+
   return (targetScore - gaaComponent - quiz1Component - quiz2Component) / 0.5;
 }
 
@@ -414,15 +403,15 @@ function calculateINLP(gaa: number, quiz1: number, quiz2: number, targetScore: n
  */
 function calculateCF(gaa: number, quiz1: number, quiz2: number, targetScore: number): number {
   // T = 0.1×GAA + 0.4×F + 0.2×Qz1 + 0.3×Qz2
-  
+
   const gaaComponent = 0.1 * gaa;
   const quiz1Component = 0.2 * quiz1;
   const quiz2Component = 0.3 * quiz2;
-  
+
   // T = 0.1×GAA + 0.4×F + 0.2×Qz1 + 0.3×Qz2
   // T - 0.1×GAA - 0.2×Qz1 - 0.3×Qz2 = 0.4×F
   // F = (T - 0.1×GAA - 0.2×Qz1 - 0.3×Qz2) / 0.4
-  
+
   return (targetScore - gaaComponent - quiz1Component - quiz2Component) / 0.4;
 }
 
@@ -433,27 +422,27 @@ function calculateCF(gaa: number, quiz1: number, quiz2: number, targetScore: num
  */
 function calculateDLP(gaa: number, quiz1: number, quiz2: number, quiz3: number, nppe1: number, nppe2: number, nppe3: number): number {
   // T = 0.2×GAA + 0.15×Qz1 + 0.15×Qz2 + 0.15×Qz3 + 0.2×Best NPPE + 0.15×Second best NPPE + 0.1×Lowest NPPE
-  
+
   const gaaComponent = 0.2 * gaa;
   const quiz1Component = 0.15 * quiz1;
   const quiz2Component = 0.15 * quiz2;
   const quiz3Component = 0.15 * quiz3;
-  
+
   // Sort NPPE scores
   const nppeScores = [nppe1, nppe2, nppe3].sort((a, b) => b - a);
   const bestNPPE = nppeScores[0];
   const secondBestNPPE = nppeScores[1];
   const lowestNPPE = nppeScores[2];
-  
+
   const bestNPPEComponent = 0.2 * bestNPPE;
   const secondBestNPPEComponent = 0.15 * secondBestNPPE;
   const lowestNPPEComponent = 0.1 * lowestNPPE;
-  
+
   // Calculate total score (capped at 100)
-  const totalScore = Math.min(100, gaaComponent + quiz1Component + quiz2Component + 
-                          quiz3Component + bestNPPEComponent + secondBestNPPEComponent + 
-                          lowestNPPEComponent);
-  
+  const totalScore = Math.min(100, gaaComponent + quiz1Component + quiz2Component +
+    quiz3Component + bestNPPEComponent + secondBestNPPEComponent +
+    lowestNPPEComponent);
+
   // Since there's no final exam in this formula, we return 0 as the required score
   // The actual total is calculated and compared with the target in the calculatePredictions function
   return 0;
@@ -463,20 +452,17 @@ function calculateDLP(gaa: number, quiz1: number, quiz2: number, quiz3: number, 
  * Calculate required final exam score for Deep Learning for CV
  */
 function calculateDLCV(gaa: number, quiz1: number, quiz2: number, targetScore: number): number {
-  // T = 0.1×GAA + 0.5×F + max(0.2×Qz1 + 0.2×Qz2, 0.3×max(Qz1, Qz2))
-  
+  // T = 0.1×GAA + 0.4×F + 0.25×Qz1 + 0.25×Qz2
+
   const gaaComponent = 0.1 * gaa;
-  
-  // Calculate the maximum of the two quiz formulas
-  const quizFormula1 = 0.2 * quiz1 + 0.2 * quiz2;
-  const quizFormula2 = 0.3 * Math.max(quiz1, quiz2);
-  const quizComponent = Math.max(quizFormula1, quizFormula2);
-  
-  // T = 0.1×GAA + 0.5×F + quizComponent
-  // T - 0.1×GAA - quizComponent = 0.5×F
-  // F = (T - 0.1×GAA - quizComponent) / 0.5
-  
-  return (targetScore - gaaComponent - quizComponent) / 0.5;
+  const quiz1Component = 0.25 * quiz1;
+  const quiz2Component = 0.25 * quiz2;
+
+  // T = 0.1×GAA + 0.4×F + 0.25×Qz1 + 0.25×Qz2
+  // T - 0.1×GAA - 0.25×Qz1 - 0.25×Qz2 = 0.4×F
+  // F = (T - 0.1×GAA - 0.25×Qz1 - 0.25×Qz2) / 0.4
+
+  return (targetScore - gaaComponent - quiz1Component - quiz2Component) / 0.4;
 }
 
 /**
@@ -484,19 +470,19 @@ function calculateDLCV(gaa: number, quiz1: number, quiz2: number, targetScore: n
  */
 function calculateDV(gaa: number, quiz1: number, quiz2: number, gp: number, targetScore: number): number {
   // T = 0.3×GA + max(0.2×Qz1 + 0.2×Qz2, 0.3×max(Qz1, Qz2)) + 0.3×P
-  
+
   const gaaComponent = 0.3 * gaa;
   const gpComponent = 0.3 * gp;
-  
+
   // Calculate the maximum of the two quiz formulas
   const quizFormula1 = 0.2 * quiz1 + 0.2 * quiz2;
   const quizFormula2 = 0.3 * Math.max(quiz1, quiz2);
   const quizComponent = Math.max(quizFormula1, quizFormula2);
-  
+
   // Since this formula doesn't have an F component, return 0
   // The prediction results will check if the current total meets the target
   const currentTotal = gaaComponent + quizComponent + gpComponent;
-  
+
   // If current total already meets or exceeds target, return 0
   // Otherwise, this grade is not achievable
   if (currentTotal >= targetScore) {
@@ -511,22 +497,22 @@ function calculateDV(gaa: number, quiz1: number, quiz2: number, gp: number, targ
  */
 function calculateME(gaa: number, quiz1: number, quiz2: number, targetScore: number): number {
   // T = 0.15×GAA + max(0.2×Qz1 + 0.2×Qz2 + 0.45×F, 0.5×F + 0.25×max(Qz1, Qz2))
-  
+
   const gaaComponent = 0.15 * gaa;
-  
+
   // We need to solve for F in each formula and take the minimum
-  
+
   // Formula 1: T = 0.15×GAA + 0.2×Qz1 + 0.2×Qz2 + 0.45×F
   // T - 0.15×GAA - 0.2×Qz1 - 0.2×Qz2 = 0.45×F
   // F = (T - 0.15×GAA - 0.2×Qz1 - 0.2×Qz2) / 0.45
   const formula1 = (targetScore - gaaComponent - 0.2 * quiz1 - 0.2 * quiz2) / 0.45;
-  
+
   // Formula 2: T = 0.15×GAA + 0.5×F + 0.25×max(Qz1, Qz2)
   // T - 0.15×GAA - 0.25×max(Qz1, Qz2) = 0.5×F
   // F = (T - 0.15×GAA - 0.25×max(Qz1, Qz2)) / 0.5
   const maxQuiz = Math.max(quiz1, quiz2);
   const formula2 = (targetScore - gaaComponent - 0.25 * maxQuiz) / 0.5;
-  
+
   // Return the minimum required score from the two formulas
   return Math.min(formula1, formula2);
 }
@@ -536,22 +522,22 @@ function calculateME(gaa: number, quiz1: number, quiz2: number, targetScore: num
  */
 function calculateATB(gaa: number, quiz1: number, quiz2: number, targetScore: number): number {
   // T = 0.2×GAA + max(0.2×Qz1 + 0.2×Qz2 + 0.4×F, 0.45×F + 0.25×max(Qz1, Qz2))
-  
+
   const gaaComponent = 0.2 * gaa;
-  
+
   // We need to solve for F in each formula and take the minimum
-  
+
   // Formula 1: T = 0.2×GAA + 0.2×Qz1 + 0.2×Qz2 + 0.4×F
   // T - 0.2×GAA - 0.2×Qz1 - 0.2×Qz2 = 0.4×F
   // F = (T - 0.2×GAA - 0.2×Qz1 - 0.2×Qz2) / 0.4
   const formula1 = (targetScore - gaaComponent - 0.2 * quiz1 - 0.2 * quiz2) / 0.4;
-  
+
   // Formula 2: T = 0.2×GAA + 0.45×F + 0.25×max(Qz1, Qz2)
   // T - 0.2×GAA - 0.25×max(Qz1, Qz2) = 0.45×F
   // F = (T - 0.2×GAA - 0.25×max(Qz1, Qz2)) / 0.45
   const maxQuiz = Math.max(quiz1, quiz2);
   const formula2 = (targetScore - gaaComponent - 0.25 * maxQuiz) / 0.45;
-  
+
   // Return the minimum required score from the two formulas
   return Math.min(formula1, formula2);
 }
@@ -561,16 +547,16 @@ function calculateATB(gaa: number, quiz1: number, quiz2: number, targetScore: nu
  */
 function calculateI4(gaa: number, quiz1: number, quiz2: number, gp: number, targetScore: number): number {
   // T = 0.4×A + 0.15×Qz1 + 0.15×Qz2 + 0.3×F + Project
-  
+
   const assignmentComponent = 0.4 * gaa;
   const quiz1Component = 0.15 * quiz1;
   const quiz2Component = 0.15 * quiz2;
   const projectComponent = gp; // Project score (up to 10 marks)
-  
+
   // T = 0.4×A + 0.15×Qz1 + 0.15×Qz2 + 0.3×F + Project
   // T - 0.4×A - 0.15×Qz1 - 0.15×Qz2 - Project = 0.3×F
   // F = (T - 0.4×A - 0.15×Qz1 - 0.15×Qz2 - Project) / 0.3
-  
+
   return (targetScore - assignmentComponent - quiz1Component - quiz2Component - projectComponent) / 0.3;
 }
 
@@ -579,22 +565,22 @@ function calculateI4(gaa: number, quiz1: number, quiz2: number, gp: number, targ
  */
 function calculateMT(gaa: number, quiz1: number, quiz2: number, targetScore: number): number {
   // T = 0.1×GAA + max(0.6×F + 0.2×max(Qz1, Qz2), 0.4×F + 0.2×Qz1 + 0.3×Qz2)
-  
+
   const gaaComponent = 0.1 * gaa;
-  
+
   // We need to solve for F in each formula and take the minimum
-  
+
   // Formula 1: T = 0.1×GAA + 0.6×F + 0.2×max(Qz1, Qz2)
   // T - 0.1×GAA - 0.2×max(Qz1, Qz2) = 0.6×F
   // F = (T - 0.1×GAA - 0.2×max(Qz1, Qz2)) / 0.6
   const maxQuiz = Math.max(quiz1, quiz2);
   const formula1 = (targetScore - gaaComponent - 0.2 * maxQuiz) / 0.6;
-  
+
   // Formula 2: T = 0.1×GAA + 0.4×F + 0.2×Qz1 + 0.3×Qz2
   // T - 0.1×GAA - 0.2×Qz1 - 0.3×Qz2 = 0.4×F
   // F = (T - 0.1×GAA - 0.2×Qz1 - 0.3×Qz2) / 0.4
   const formula2 = (targetScore - gaaComponent - 0.2 * quiz1 - 0.3 * quiz2) / 0.4;
-  
+
   // Return the minimum required score from the two formulas
   return Math.min(formula1, formula2);
 }
@@ -604,22 +590,22 @@ function calculateMT(gaa: number, quiz1: number, quiz2: number, targetScore: num
  */
 function calculateLSM(gaa: number, quiz1: number, quiz2: number, targetScore: number): number {
   // T = 0.1×GAA + max(0.6×F + 0.2×max(Qz1, Qz2), 0.4×F + 0.25×Qz1 + 0.25×Qz2)
-  
+
   const gaaComponent = 0.1 * gaa;
-  
+
   // We need to solve for F in each formula and take the minimum
-  
+
   // Formula 1: T = 0.1×GAA + 0.6×F + 0.2×max(Qz1, Qz2)
   // T - 0.1×GAA - 0.2×max(Qz1, Qz2) = 0.6×F
   // F = (T - 0.1×GAA - 0.2×max(Qz1, Qz2)) / 0.6
   const maxQuiz = Math.max(quiz1, quiz2);
   const formula1 = (targetScore - gaaComponent - 0.2 * maxQuiz) / 0.6;
-  
+
   // Formula 2: T = 0.1×GAA + 0.4×F + 0.25×Qz1 + 0.25×Qz2
   // T - 0.1×GAA - 0.25×Qz1 - 0.25×Qz2 = 0.4×F
   // F = (T - 0.1×GAA - 0.25×Qz1 - 0.25×Qz2) / 0.4
   const formula2 = (targetScore - gaaComponent - 0.25 * quiz1 - 0.25 * quiz2) / 0.4;
-  
+
   // Return the minimum required score from the two formulas
   return Math.min(formula1, formula2);
 }
@@ -629,15 +615,15 @@ function calculateLSM(gaa: number, quiz1: number, quiz2: number, targetScore: nu
  */
 function calculateOS(gaa: number, quiz1: number, quiz2: number, targetScore: number): number {
   // T = 0.1×GAA + 0.4×F + 0.25×Qz1 + 0.25×Qz2
-  
+
   const gaaComponent = 0.1 * gaa;
   const quiz1Component = 0.25 * quiz1;
   const quiz2Component = 0.25 * quiz2;
-  
+
   // T = 0.1×GAA + 0.4×F + 0.25×Qz1 + 0.25×Qz2
   // T - 0.1×GAA - 0.25×Qz1 - 0.25×Qz2 = 0.4×F
   // F = (T - 0.1×GAA - 0.25×Qz1 - 0.25×Qz2) / 0.4
-  
+
   return (targetScore - gaaComponent - quiz1Component - quiz2Component) / 0.4;
 }
 
@@ -646,19 +632,19 @@ function calculateOS(gaa: number, quiz1: number, quiz2: number, targetScore: num
  */
 function calculateSTML(gaa: number, gpa: number, quiz1: number, quiz2: number, targetScore: number): number {
   // T = 0.1×GAA + 0.2×GPA + max(0.2×Qz1 + 0.2×Qz2, 0.3×max(Qz1, Qz2)) + 0.3×F
-  
+
   const gaaComponent = 0.1 * gaa;
   const gpaComponent = 0.2 * gpa;
-  
+
   // Calculate the maximum of the two quiz formulas
   const quizFormula1 = 0.2 * quiz1 + 0.2 * quiz2;
   const quizFormula2 = 0.3 * Math.max(quiz1, quiz2);
   const quizComponent = Math.max(quizFormula1, quizFormula2);
-  
+
   // T = 0.1×GAA + 0.2×GPA + quizComponent + 0.3×F
   // T - 0.1×GAA - 0.2×GPA - quizComponent = 0.3×F
   // F = (T - 0.1×GAA - 0.2×GPA - quizComponent) / 0.3
-  
+
   return (targetScore - gaaComponent - gpaComponent - quizComponent) / 0.3;
 }
 
@@ -667,22 +653,22 @@ function calculateSTML(gaa: number, gpa: number, quiz1: number, quiz2: number, t
  */
 function calculateBDBN(gaa: number, quiz1: number, quiz2: number, targetScore: number): number {
   // T = 0.15×GAA + max(0.2×Qz1 + 0.2×Qz2 + 0.45×F, 0.5×F + 0.25×max(Qz1, Qz2))
-  
+
   const gaaComponent = 0.15 * gaa;
-  
+
   // We need to solve for F in each formula and take the minimum
-  
+
   // Formula 1: T = 0.15×GAA + 0.2×Qz1 + 0.2×Qz2 + 0.45×F
   // T - 0.15×GAA - 0.2×Qz1 - 0.2×Qz2 = 0.45×F
   // F = (T - 0.15×GAA - 0.2×Qz1 - 0.2×Qz2) / 0.45
   const formula1 = (targetScore - gaaComponent - 0.2 * quiz1 - 0.2 * quiz2) / 0.45;
-  
+
   // Formula 2: T = 0.15×GAA + 0.5×F + 0.25×max(Qz1, Qz2)
   // T - 0.15×GAA - 0.25×max(Qz1, Qz2) = 0.5×F
   // F = (T - 0.15×GAA - 0.25×max(Qz1, Qz2)) / 0.5
   const maxQuiz = Math.max(quiz1, quiz2);
   const formula2 = (targetScore - gaaComponent - 0.25 * maxQuiz) / 0.5;
-  
+
   // Return the minimum required score from the two formulas
   return Math.min(formula1, formula2);
 }
@@ -691,17 +677,17 @@ function calculateBDBN(gaa: number, quiz1: number, quiz2: number, targetScore: n
  * Calculate required final exam score for Large Language Models
  */
 function calculateLLM(gaa: number, quiz1: number, quiz2: number, targetScore: number): number {
-  // T = 0.1×GAA + 0.4×F + 0.25×Qz1 + 0.25×Qz2
-  
-  const gaaComponent = 0.1 * gaa;
-  const quiz1Component = 0.25 * quiz1;
-  const quiz2Component = 0.25 * quiz2;
-  
-  // T = 0.1×GAA + 0.4×F + 0.25×Qz1 + 0.25×Qz2
-  // T - 0.1×GAA - 0.25×Qz1 - 0.25×Qz2 = 0.4×F
-  // F = (T - 0.1×GAA - 0.25×Qz1 - 0.25×Qz2) / 0.4
-  
-  return (targetScore - gaaComponent - quiz1Component - quiz2Component) / 0.4;
+  // T = 0.05×GAA + 0.35×F + 0.3×Qz1 + 0.3×Qz2
+
+  const gaaComponent = 0.05 * gaa;
+  const quiz1Component = 0.3 * quiz1;
+  const quiz2Component = 0.3 * quiz2;
+
+  // T = 0.05×GAA + 0.35×F + 0.3×Qz1 + 0.3×Qz2
+  // T - 0.05×GAA - 0.3×Qz1 - 0.3×Qz2 = 0.35×F
+  // F = (T - 0.05×GAA - 0.3×Qz1 - 0.3×Qz2) / 0.35
+
+  return (targetScore - gaaComponent - quiz1Component - quiz2Component) / 0.35;
 }
 
 /**
@@ -709,7 +695,7 @@ function calculateLLM(gaa: number, quiz1: number, quiz2: number, targetScore: nu
  */
 export function calculatePredictions(input: DegreePredictorInput): PredictionResult[] {
   const { subject } = input;
-  
+
   // Check eligibility
   const eligibility = checkEligibility(input);
   if (!eligibility.eligible) {
@@ -719,13 +705,13 @@ export function calculatePredictions(input: DegreePredictorInput): PredictionRes
       achievable: false
     }));
   }
-  
+
   // Calculate required score for each grade
   return gradeThresholds.map(grade => {
     const targetScore = grade.min; // Target the minimum score needed for this grade
     let requiredFinalScore = 0;
     let achievable = true;
-    
+
     // Special handling for DLP which doesn't have a final exam component
     if (subject === 'DLP') {
       // Calculate current total for DLP
@@ -738,18 +724,18 @@ export function calculatePredictions(input: DegreePredictorInput): PredictionRes
         input.nppe2 || 0,
         input.nppe3 || 0
       );
-      
+
       // For DLP, check if the total meets or exceeds the target
       achievable = currentTotal >= targetScore;
       requiredFinalScore = 0; // No final exam
-      
+
       return {
         grade: grade.grade,
         required: requiredFinalScore,
         achievable
       };
     }
-    
+
     // Special handling for DV which doesn't have a final exam component
     if (subject === 'DV') {
       // Calculate required for DV
@@ -760,10 +746,10 @@ export function calculatePredictions(input: DegreePredictorInput): PredictionRes
         input.gp || 0,
         targetScore
       );
-      
+
       // Check if achievable (DV doesn't have a final component, so if we get 101, it's not achievable)
       achievable = requiredFinalScore <= 100;
-      
+
       if (requiredFinalScore === 0) {
         // If required is 0, it means current total already meets the target
         return {
@@ -772,14 +758,14 @@ export function calculatePredictions(input: DegreePredictorInput): PredictionRes
           achievable: true
         };
       }
-      
+
       return {
         grade: grade.grade,
         required: 0, // No final exam
         achievable: false // Not achievable
       };
     }
-    
+
     // For other subjects, calculate required final exam score
     switch (subject) {
       case 'ST':
@@ -950,13 +936,13 @@ export function calculatePredictions(input: DegreePredictorInput): PredictionRes
         );
         break;
     }
-    
+
     // Round to nearest integer and cap between 0 and 100
     const finalScore = Math.max(0, Math.min(100, Math.round(requiredFinalScore)));
-    
+
     // Check if the required score is achievable (less than or equal to 100)
     achievable = requiredFinalScore <= 100;
-    
+
     return {
       grade: grade.grade,
       required: finalScore,
