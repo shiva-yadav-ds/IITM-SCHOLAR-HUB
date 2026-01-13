@@ -136,6 +136,88 @@ const Index = () => {
             — all the tools you need to excel at IIT Madras.
           </motion.p>
 
+          {/* Quick Access Tool Cards */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, delay: 0.25 }}
+            className="mb-10 max-w-4xl mx-auto"
+          >
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
+              <Link to="/grade-calculator">
+                <motion.div
+                  whileHover={{ scale: 1.02, y: -2 }}
+                  className="group relative bg-white/80 dark:bg-white/5 hover:bg-white dark:hover:bg-white/10 backdrop-blur-md rounded-xl p-3 md:p-4 shadow-sm hover:shadow-md border border-gray-200 dark:border-white/20 hover:border-blue-500 dark:hover:border-blue-400 transition-all duration-200 cursor-pointer"
+                >
+                  <div className="flex items-center gap-3">
+                    <div className="w-8 h-8 md:w-9 md:h-9 rounded-lg bg-blue-50 dark:bg-blue-500/10 flex items-center justify-center group-hover:bg-blue-100 dark:group-hover:bg-blue-500/20 transition-colors flex-shrink-0">
+                      <GraduationCap className="w-4 h-4 md:w-5 md:h-5 text-blue-600 dark:text-blue-400" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <h3 className="text-xs md:text-sm font-semibold text-gray-900 dark:text-white truncate">Grade Calculator</h3>
+                      <p className="text-[10px] md:text-xs text-gray-500 dark:text-gray-400 hidden md:block">Calculate GPA</p>
+                    </div>
+                    <ChevronRight className="w-4 h-4 text-gray-400 dark:text-gray-500 group-hover:text-blue-600 dark:group-hover:text-blue-400 group-hover:translate-x-0.5 transition-all flex-shrink-0" />
+                  </div>
+                </motion.div>
+              </Link>
+
+              <Link to="/cgpa-calculator">
+                <motion.div
+                  whileHover={{ scale: 1.02, y: -2 }}
+                  className="group relative bg-white/80 dark:bg-white/5 hover:bg-white dark:hover:bg-white/10 backdrop-blur-md rounded-xl p-3 md:p-4 shadow-sm hover:shadow-md border border-gray-200 dark:border-white/20 hover:border-purple-500 dark:hover:border-purple-400 transition-all duration-200 cursor-pointer"
+                >
+                  <div className="flex items-center gap-3">
+                    <div className="w-8 h-8 md:w-9 md:h-9 rounded-lg bg-purple-50 dark:bg-purple-500/10 flex items-center justify-center group-hover:bg-purple-100 dark:group-hover:bg-purple-500/20 transition-colors flex-shrink-0">
+                      <Calculator className="w-4 h-4 md:w-5 md:h-5 text-purple-600 dark:text-purple-400" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <h3 className="text-xs md:text-sm font-semibold text-gray-900 dark:text-white truncate">CGPA Calculator</h3>
+                      <p className="text-[10px] md:text-xs text-gray-500 dark:text-gray-400 hidden md:block">Overall CGPA</p>
+                    </div>
+                    <ChevronRight className="w-4 h-4 text-gray-400 dark:text-gray-500 group-hover:text-purple-600 dark:group-hover:text-purple-400 group-hover:translate-x-0.5 transition-all flex-shrink-0" />
+                  </div>
+                </motion.div>
+              </Link>
+
+              <Link to="/endterm-marks-predictor">
+                <motion.div
+                  whileHover={{ scale: 1.02, y: -2 }}
+                  className="group relative bg-white/80 dark:bg-white/5 hover:bg-white dark:hover:bg-white/10 backdrop-blur-md rounded-xl p-3 md:p-4 shadow-sm hover:shadow-md border border-gray-200 dark:border-white/20 hover:border-rose-500 dark:hover:border-rose-400 transition-all duration-200 cursor-pointer"
+                >
+                  <div className="flex items-center gap-3">
+                    <div className="w-8 h-8 md:w-9 md:h-9 rounded-lg bg-rose-50 dark:bg-rose-500/10 flex items-center justify-center group-hover:bg-rose-100 dark:group-hover:bg-rose-500/20 transition-colors flex-shrink-0">
+                      <Zap className="w-4 h-4 md:w-5 md:h-5 text-rose-600 dark:text-rose-400" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <h3 className="text-xs md:text-sm font-semibold text-gray-900 dark:text-white truncate">Marks Predictor</h3>
+                      <p className="text-[10px] md:text-xs text-gray-500 dark:text-gray-400 hidden md:block">Predict scores</p>
+                    </div>
+                    <ChevronRight className="w-4 h-4 text-gray-400 dark:text-gray-500 group-hover:text-rose-600 dark:group-hover:text-rose-400 group-hover:translate-x-0.5 transition-all flex-shrink-0" />
+                  </div>
+                </motion.div>
+              </Link>
+
+              <Link to="/resume-generator">
+                <motion.div
+                  whileHover={{ scale: 1.02, y: -2 }}
+                  className="group relative bg-white/80 dark:bg-white/5 hover:bg-white dark:hover:bg-white/10 backdrop-blur-md rounded-xl p-3 md:p-4 shadow-sm hover:shadow-md border border-gray-200 dark:border-white/20 hover:border-emerald-500 dark:hover:border-emerald-400 transition-all duration-200 cursor-pointer"
+                >
+                  <div className="flex items-center gap-3">
+                    <div className="w-8 h-8 md:w-9 md:h-9 rounded-lg bg-emerald-50 dark:bg-emerald-500/10 flex items-center justify-center group-hover:bg-emerald-100 dark:group-hover:bg-emerald-500/20 transition-colors flex-shrink-0">
+                      <FileText className="w-4 h-4 md:w-5 md:h-5 text-emerald-600 dark:text-emerald-400" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <h3 className="text-xs md:text-sm font-semibold text-gray-900 dark:text-white truncate">Resume Builder</h3>
+                      <p className="text-[10px] md:text-xs text-gray-500 dark:text-gray-400 hidden md:block">Create resume</p>
+                    </div>
+                    <ChevronRight className="w-4 h-4 text-gray-400 dark:text-gray-500 group-hover:text-emerald-600 dark:group-hover:text-emerald-400 group-hover:translate-x-0.5 transition-all flex-shrink-0" />
+                  </div>
+                </motion.div>
+              </Link>
+            </div>
+          </motion.div>
+
           {/* CTA Buttons */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -143,26 +225,27 @@ const Index = () => {
             transition={{ duration: 0.5, delay: 0.3 }}
             className="flex flex-col sm:flex-row gap-4 justify-center items-center"
           >
-            <Link to="/grade-calculator">
+            <Link to="/python-cheatsheet">
               <Button
                 size="lg"
-                className="px-8 py-6 text-lg font-semibold bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white rounded-xl shadow-lg hover:shadow-xl hover:shadow-blue-500/25 dark:hover:shadow-blue-500/20 transition-all duration-300"
+                className="px-8 py-4 text-base font-bold bg-white dark:bg-white/10 border-2 border-gray-300 dark:border-white/20 hover:border-blue-500 dark:hover:border-blue-400 text-gray-900 dark:text-white rounded-xl backdrop-blur-md hover:bg-gray-50 dark:hover:bg-white/15 transition-all duration-200 shadow-sm"
               >
-                Get Started Free
-                <ArrowRight className="w-5 h-5 ml-2" />
+                <BookOpen className="w-4 h-4 mr-2" />
+                Python Cheatsheet
               </Button>
             </Link>
             <Link to="/roadmaps">
               <Button
                 variant="outline"
                 size="lg"
-                className="px-8 py-6 text-lg font-semibold bg-white/90 dark:bg-white/10 border-2 border-gray-300 dark:border-white/20 hover:border-blue-500 dark:hover:border-blue-400 text-gray-900 dark:text-white rounded-xl backdrop-blur-md hover:bg-white dark:hover:bg-white/20 transition-all duration-300"
+                className="px-8 py-4 text-base font-bold bg-white/80 dark:bg-white/5 border-2 border-gray-300 dark:border-white/20 hover:border-purple-500 dark:hover:border-purple-400 text-gray-900 dark:text-white rounded-xl backdrop-blur-md hover:bg-white dark:hover:bg-white/10 transition-all duration-200 shadow-sm"
               >
-                <BookOpen className="w-5 h-5 mr-2" />
+                <BookOpen className="w-4 h-4 mr-2" />
                 View Roadmaps
               </Button>
             </Link>
           </motion.div>
+
 
           {/* 2026 Update Announcement */}
           <motion.div

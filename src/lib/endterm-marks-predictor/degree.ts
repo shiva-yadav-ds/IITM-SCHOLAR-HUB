@@ -33,6 +33,10 @@ export const degreeSubjects = [
   { value: 'STML', label: 'Special Topics in ML (Reinforcement Learning)', code: 'STML' },
   { value: 'BDBN', label: 'Big Data & Biological Networks', code: 'BDBN' },
   { value: 'LLM', label: 'Large Language Models', code: 'LLM' },
+  { value: 'CN', label: 'Computer Networks', code: 'CN' },
+  { value: 'DSAL', label: 'Data Science and AI Lab', code: 'DSAL' },
+  { value: 'ADL', label: 'Application Development Lab', code: 'ADL' },
+  { value: 'MR', label: 'Market Research', code: 'MR' },
 ];
 
 // Input interface for prediction
@@ -55,6 +59,7 @@ export interface DegreePredictorInput {
   nppe2?: number;
   nppe3?: number;
   gpa?: number;
+  viva?: number; // Viva score for Deep Learning Practice
   [key: string]: string | number | undefined;
 }
 
@@ -91,7 +96,7 @@ export function getRequiredFields(subject: string): string[] {
     case 'CF': // Corporate Finance
       return ['gaa', 'quiz1', 'quiz2'];
     case 'DLP': // Deep Learning Practice
-      return ['gaa', 'quiz1', 'quiz2', 'quiz3', 'nppe1', 'nppe2', 'nppe3'];
+      return ['gaa', 'quiz1', 'quiz2', 'quiz3', 'nppe1', 'nppe2', 'nppe3', 'viva'];
     case 'DLCV': // Deep Learning for CV
       return ['gaa', 'quiz1', 'quiz2'];
     case 'DV': // Data Visualization
@@ -99,7 +104,7 @@ export function getRequiredFields(subject: string): string[] {
     case 'ME': // Managerial Economics
       return ['gaa', 'quiz1', 'quiz2'];
     case 'ATB': // Algorithmic Thinking in Bioinformatics
-      return ['gaa', 'quiz1', 'quiz2'];
+      return ['gaa', 'gaap', 'quiz1', 'quiz2'];
     case 'I4': // Industry 4.0
       return ['gaa', 'quiz1', 'quiz2', 'gp'];
     case 'MT': // Mathematical Thinking
@@ -114,6 +119,14 @@ export function getRequiredFields(subject: string): string[] {
       return ['gaa', 'quiz1', 'quiz2'];
     case 'LLM': // Large Language Models
       return ['gaa', 'quiz1', 'quiz2'];
+    case 'CN': // Computer Networks
+      return ['gaa', 'gaap', 'quiz1', 'quiz2'];
+    case 'DSAL': // Data Science and AI Lab (no end term, uses Viva)
+      return ['gaa', 'quiz2', 'gp', 'viva'];
+    case 'ADL': // Application Development Lab (no end term, uses Viva)
+      return ['gaa', 'quiz2', 'viva'];
+    case 'MR': // Market Research
+      return ['gaa', 'quiz1', 'quiz2', 'gp'];
     default:
       return [];
   }
@@ -416,36 +429,24 @@ function calculateCF(gaa: number, quiz1: number, quiz2: number, targetScore: num
 }
 
 /**
- * Calculate required final exam score for Deep Learning Practice
- * This course doesn't have a final exam component in the formula, but we'll include a function
- * to calculate the current total and determine what's needed to reach a target grade
+ * Calculate required Viva score for Deep Learning Practice
+ * This course uses Viva instead of Final Exam
  */
-function calculateDLP(gaa: number, quiz1: number, quiz2: number, quiz3: number, nppe1: number, nppe2: number, nppe3: number): number {
-  // T = 0.2×GAA + 0.15×Qz1 + 0.15×Qz2 + 0.15×Qz3 + 0.2×Best NPPE + 0.15×Second best NPPE + 0.1×Lowest NPPE
+function calculateDLP(gaa: number, quiz1: number, quiz2: number, quiz3: number, nppe1: number, nppe2: number, nppe3: number, targetScore: number): number {
+  // T = 0.05×GA + 0.15×Qz1 + 0.15×Qz2 + 0.15×Qz3 + 0.25×Avg(NPPE) + 0.25×Viva
 
-  const gaaComponent = 0.2 * gaa;
+  const gaaComponent = 0.05 * gaa;
   const quiz1Component = 0.15 * quiz1;
   const quiz2Component = 0.15 * quiz2;
   const quiz3Component = 0.15 * quiz3;
+  const nppeAverage = (nppe1 + nppe2 + nppe3) / 3;
+  const nppeComponent = 0.25 * nppeAverage;
 
-  // Sort NPPE scores
-  const nppeScores = [nppe1, nppe2, nppe3].sort((a, b) => b - a);
-  const bestNPPE = nppeScores[0];
-  const secondBestNPPE = nppeScores[1];
-  const lowestNPPE = nppeScores[2];
+  // T = 0.05×GA + 0.15×Qz1 + 0.15×Qz2 + 0.15×Qz3 + 0.25×Avg(NPPE) + 0.25×Viva
+  // T - other components = 0.25×Viva
+  // Viva = (T - other components) / 0.25
 
-  const bestNPPEComponent = 0.2 * bestNPPE;
-  const secondBestNPPEComponent = 0.15 * secondBestNPPE;
-  const lowestNPPEComponent = 0.1 * lowestNPPE;
-
-  // Calculate total score (capped at 100)
-  const totalScore = Math.min(100, gaaComponent + quiz1Component + quiz2Component +
-    quiz3Component + bestNPPEComponent + secondBestNPPEComponent +
-    lowestNPPEComponent);
-
-  // Since there's no final exam in this formula, we return 0 as the required score
-  // The actual total is calculated and compared with the target in the calculatePredictions function
-  return 0;
+  return (targetScore - gaaComponent - quiz1Component - quiz2Component - quiz3Component - nppeComponent) / 0.25;
 }
 
 /**
@@ -520,26 +521,19 @@ function calculateME(gaa: number, quiz1: number, quiz2: number, targetScore: num
 /**
  * Calculate required final exam score for Algorithmic Thinking in Bioinformatics
  */
-function calculateATB(gaa: number, quiz1: number, quiz2: number, targetScore: number): number {
-  // T = 0.2×GAA + max(0.2×Qz1 + 0.2×Qz2 + 0.4×F, 0.45×F + 0.25×max(Qz1, Qz2))
+function calculateATB(gaa: number, gaap: number, quiz1: number, quiz2: number, targetScore: number): number {
+  // T = 0.075×GAA + 0.025×GRPa + 0.25×Qz1 + 0.25×Qz2 + 0.4×F
 
-  const gaaComponent = 0.2 * gaa;
+  const gaaComponent = 0.075 * gaa;
+  const gaapComponent = 0.025 * gaap;
+  const quiz1Component = 0.25 * quiz1;
+  const quiz2Component = 0.25 * quiz2;
 
-  // We need to solve for F in each formula and take the minimum
+  // T = 0.075×GAA + 0.025×GRPa + 0.25×Qz1 + 0.25×Qz2 + 0.4×F
+  // T - components = 0.4×F
+  // F = (T - components) / 0.4
 
-  // Formula 1: T = 0.2×GAA + 0.2×Qz1 + 0.2×Qz2 + 0.4×F
-  // T - 0.2×GAA - 0.2×Qz1 - 0.2×Qz2 = 0.4×F
-  // F = (T - 0.2×GAA - 0.2×Qz1 - 0.2×Qz2) / 0.4
-  const formula1 = (targetScore - gaaComponent - 0.2 * quiz1 - 0.2 * quiz2) / 0.4;
-
-  // Formula 2: T = 0.2×GAA + 0.45×F + 0.25×max(Qz1, Qz2)
-  // T - 0.2×GAA - 0.25×max(Qz1, Qz2) = 0.45×F
-  // F = (T - 0.2×GAA - 0.25×max(Qz1, Qz2)) / 0.45
-  const maxQuiz = Math.max(quiz1, quiz2);
-  const formula2 = (targetScore - gaaComponent - 0.25 * maxQuiz) / 0.45;
-
-  // Return the minimum required score from the two formulas
-  return Math.min(formula1, formula2);
+  return (targetScore - gaaComponent - gaapComponent - quiz1Component - quiz2Component) / 0.4;
 }
 
 /**
@@ -631,46 +625,35 @@ function calculateOS(gaa: number, quiz1: number, quiz2: number, targetScore: num
  * Calculate required final exam score for Special Topics in ML (Reinforcement Learning)
  */
 function calculateSTML(gaa: number, gpa: number, quiz1: number, quiz2: number, targetScore: number): number {
-  // T = 0.1×GAA + 0.2×GPA + max(0.2×Qz1 + 0.2×Qz2, 0.3×max(Qz1, Qz2)) + 0.3×F
+  // T = 0.05×GAA + 0.25×GPA + 0.2×Qz1 + 0.2×Qz2 + 0.3×F
 
-  const gaaComponent = 0.1 * gaa;
-  const gpaComponent = 0.2 * gpa;
+  const gaaComponent = 0.05 * gaa;
+  const gpaComponent = 0.25 * gpa;
+  const quiz1Component = 0.2 * quiz1;
+  const quiz2Component = 0.2 * quiz2;
 
-  // Calculate the maximum of the two quiz formulas
-  const quizFormula1 = 0.2 * quiz1 + 0.2 * quiz2;
-  const quizFormula2 = 0.3 * Math.max(quiz1, quiz2);
-  const quizComponent = Math.max(quizFormula1, quizFormula2);
+  // T = 0.05×GAA + 0.25×GPA + 0.2×Qz1 + 0.2×Qz2 + 0.3×F
+  // T - components = 0.3×F
+  // F = (T - components) / 0.3
 
-  // T = 0.1×GAA + 0.2×GPA + quizComponent + 0.3×F
-  // T - 0.1×GAA - 0.2×GPA - quizComponent = 0.3×F
-  // F = (T - 0.1×GAA - 0.2×GPA - quizComponent) / 0.3
-
-  return (targetScore - gaaComponent - gpaComponent - quizComponent) / 0.3;
+  return (targetScore - gaaComponent - gpaComponent - quiz1Component - quiz2Component) / 0.3;
 }
 
 /**
  * Calculate required final exam score for Big Data & Biological Networks
  */
 function calculateBDBN(gaa: number, quiz1: number, quiz2: number, targetScore: number): number {
-  // T = 0.15×GAA + max(0.2×Qz1 + 0.2×Qz2 + 0.45×F, 0.5×F + 0.25×max(Qz1, Qz2))
+  // T = 0.1×GAA + 0.4×F + 0.25×Qz1 + 0.25×Qz2
 
-  const gaaComponent = 0.15 * gaa;
+  const gaaComponent = 0.1 * gaa;
+  const quiz1Component = 0.25 * quiz1;
+  const quiz2Component = 0.25 * quiz2;
 
-  // We need to solve for F in each formula and take the minimum
+  // T = 0.1×GAA + 0.4×F + 0.25×Qz1 + 0.25×Qz2
+  // T - 0.1×GAA - 0.25×Qz1 - 0.25×Qz2 = 0.4×F
+  // F = (T - 0.1×GAA - 0.25×Qz1 - 0.25×Qz2) / 0.4
 
-  // Formula 1: T = 0.15×GAA + 0.2×Qz1 + 0.2×Qz2 + 0.45×F
-  // T - 0.15×GAA - 0.2×Qz1 - 0.2×Qz2 = 0.45×F
-  // F = (T - 0.15×GAA - 0.2×Qz1 - 0.2×Qz2) / 0.45
-  const formula1 = (targetScore - gaaComponent - 0.2 * quiz1 - 0.2 * quiz2) / 0.45;
-
-  // Formula 2: T = 0.15×GAA + 0.5×F + 0.25×max(Qz1, Qz2)
-  // T - 0.15×GAA - 0.25×max(Qz1, Qz2) = 0.5×F
-  // F = (T - 0.15×GAA - 0.25×max(Qz1, Qz2)) / 0.5
-  const maxQuiz = Math.max(quiz1, quiz2);
-  const formula2 = (targetScore - gaaComponent - 0.25 * maxQuiz) / 0.5;
-
-  // Return the minimum required score from the two formulas
-  return Math.min(formula1, formula2);
+  return (targetScore - gaaComponent - quiz1Component - quiz2Component) / 0.4;
 }
 
 /**
@@ -688,6 +671,40 @@ function calculateLLM(gaa: number, quiz1: number, quiz2: number, targetScore: nu
   // F = (T - 0.05×GAA - 0.3×Qz1 - 0.3×Qz2) / 0.35
 
   return (targetScore - gaaComponent - quiz1Component - quiz2Component) / 0.35;
+}
+
+/**
+ * Calculate required final exam score for Computer Networks
+ */
+function calculateCN(gaa: number, gaap: number, quiz1: number, quiz2: number, targetScore: number): number {
+  // T = 0.1×GAA + 0.3×F + 0.25×Qz1 + 0.25×Qz2 + 0.1×Prog
+
+  const gaaComponent = 0.1 * gaa;
+  const gaapComponent = 0.1 * gaap;
+  const quiz1Component = 0.25 * quiz1;
+  const quiz2Component = 0.25 * quiz2;
+
+  // T = 0.1×GAA + 0.3×F + 0.25×Qz1 + 0.25×Qz2 + 0.1×Prog
+  // F = (T - components) / 0.3
+
+  return (targetScore - gaaComponent - gaapComponent - quiz1Component - quiz2Component) / 0.3;
+}
+
+/**
+ * Calculate required final exam score for Market Research
+ */
+function calculateMR(gaa: number, quiz1: number, quiz2: number, project: number, targetScore: number): number {
+  // T = 0.1×GAA + 0.2×Qz1 + 0.2×Qz2 + 0.25×Project + 0.25×F
+
+  const gaaComponent = 0.1 * gaa;
+  const quiz1Component = 0.2 * quiz1;
+  const quiz2Component = 0.2 * quiz2;
+  const projectComponent = 0.25 * project;
+
+  // T = 0.1×GAA + 0.2×Qz1 + 0.2×Qz2 + 0.25×P + 0.25×F
+  // F = (T - components) / 0.25
+
+  return (targetScore - gaaComponent - quiz1Component - quiz2Component - projectComponent) / 0.25;
 }
 
 /**
@@ -712,26 +729,26 @@ export function calculatePredictions(input: DegreePredictorInput): PredictionRes
     let requiredFinalScore = 0;
     let achievable = true;
 
-    // Special handling for DLP which doesn't have a final exam component
+    // Special handling for DLP which uses Viva instead of final exam
     if (subject === 'DLP') {
-      // Calculate current total for DLP
-      const currentTotal = calculateDLP(
+      // Calculate required Viva score for DLP
+      requiredFinalScore = calculateDLP(
         input.gaa || 0,
         input.quiz1 || 0,
         input.quiz2 || 0,
         input.quiz3 || 0,
         input.nppe1 || 0,
         input.nppe2 || 0,
-        input.nppe3 || 0
+        input.nppe3 || 0,
+        targetScore
       );
 
-      // For DLP, check if the total meets or exceeds the target
-      achievable = currentTotal >= targetScore;
-      requiredFinalScore = 0; // No final exam
+      // Check if achievable (Viva score between 0 and 100)
+      achievable = requiredFinalScore >= 0 && requiredFinalScore <= 100;
 
       return {
         grade: grade.grade,
-        required: requiredFinalScore,
+        required: Math.max(0, Math.ceil(requiredFinalScore)),
         achievable
       };
     }
@@ -872,6 +889,7 @@ export function calculatePredictions(input: DegreePredictorInput): PredictionRes
       case 'ATB':
         requiredFinalScore = calculateATB(
           input.gaa || 0,
+          input.gaap || 0,
           input.quiz1 || 0,
           input.quiz2 || 0,
           targetScore
@@ -934,6 +952,31 @@ export function calculatePredictions(input: DegreePredictorInput): PredictionRes
           input.quiz2 || 0,
           targetScore
         );
+        break;
+      case 'CN':
+        requiredFinalScore = calculateCN(
+          input.gaa || 0,
+          input.gaap || 0,
+          input.quiz1 || 0,
+          input.quiz2 || 0,
+          targetScore
+        );
+        break;
+      case 'MR':
+        requiredFinalScore = calculateMR(
+          input.gaa || 0,
+          input.quiz1 || 0,
+          input.quiz2 || 0,
+          input.gp || 0,
+          targetScore
+        );
+        break;
+      case 'DSAL':
+      case 'ADL':
+        // These courses use Viva instead of final exam
+        // Return 0 as they don't have a traditional end-term
+        requiredFinalScore = 0;
+        achievable = true;
         break;
     }
 

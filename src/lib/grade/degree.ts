@@ -87,8 +87,7 @@ export function calculateDegreeTotal(params: DegreeParams): number {
     nppe2 = 0,
     nppe3 = 0,
     ga = 0,
-    project = 0,
-    viva = 0
+    project = 0
   } = params;
 
   let total = 0;
@@ -188,13 +187,11 @@ export function calculateDegreeTotal(params: DegreeParams): number {
   }
   // New courses
   else if (subject === 'deep_learning_practice') {
-    // T = 0.05GA + 0.15Quiz1 + 0.15Quiz2 + 0.15Quiz3 + 0.25*avgNPPE + 0.25Viva + Normal Bonus
-
-    // Calculate average NPPE score
-    const avgNPPE = (nppe1 + nppe2 + nppe3) / 3;
+    // T = 0.05GA + 0.15Quiz1 + 0.15Quiz2 + 0.15Quiz3 + 0.25*((NPPE1+NPPE2+NPPE3)/3) + 0.25Viva + Normal Bonus
+    const nppeAverage = (nppe1 + nppe2 + nppe3) / 3;
 
     total = 0.05 * ga + 0.15 * quiz1 + 0.15 * quiz2 + 0.15 * quiz3 +
-      0.25 * avgNPPE + 0.25 * viva;
+      0.25 * nppeAverage + 0.25 * (params.viva || 0);
 
     // Add normal bonus if total is passing (≥40)
     if (total >= 40) {
@@ -236,11 +233,8 @@ export function calculateDegreeTotal(params: DegreeParams): number {
   }
   // New courses - 2nd batch
   else if (subject === 'algorithmic_thinking') {
-    // T = 0.2GAA + max(0.2Qz1 + 0.2Qz2 + 0.4F, 0.45F + 0.25max(Qz1, Qz2)) + Normal Bonus
-    const option1 = 0.2 * quiz1 + 0.2 * quiz2 + 0.4 * finalExam;
-    const option2 = 0.45 * finalExam + 0.25 * Math.max(quiz1, quiz2);
-
-    total = 0.2 * gaa + Math.max(option1, option2);
+    // T = 0.075GAA + 0.025GRPa + 0.25Qz1 + 0.25Qz2 + 0.4F + Normal Bonus
+    total = 0.075 * gaa + 0.025 * gaap + 0.25 * quiz1 + 0.25 * quiz2 + 0.4 * finalExam;
 
     // Add normal bonus if total is passing (≥40)
     if (total >= 40) {
@@ -300,11 +294,8 @@ export function calculateDegreeTotal(params: DegreeParams): number {
   }
   // Courses added in 3rd batch
   else if (subject === 'special_topics_ml') {
-    // T = 0.1GAA + 0.2GPA + max(0.2Qz1 + 0.2Qz2, 0.3max(Qz1, Qz2)) + 0.3F + Normal Bonus
-    const quizOption1 = 0.2 * quiz1 + 0.2 * quiz2;
-    const quizOption2 = 0.3 * Math.max(quiz1, quiz2);
-
-    total = 0.1 * gaa + 0.2 * gpa + Math.max(quizOption1, quizOption2) + 0.3 * finalExam;
+    // T = 0.05GAA + 0.25GPA + 0.2Qz1 + 0.2Qz2 + 0.3F + Bonus
+    total = 0.05 * gaa + 0.25 * gpa + 0.2 * quiz1 + 0.2 * quiz2 + 0.3 * finalExam;
 
     // Add normal bonus if total is passing (≥40)
     if (total >= 40) {
@@ -312,11 +303,8 @@ export function calculateDegreeTotal(params: DegreeParams): number {
     }
   }
   else if (subject === 'big_data_biological_networks') {
-    // T = 0.15GAA + max(0.2Qz1 + 0.2Qz2 + 0.45F, 0.5F + 0.25max(Qz1, Qz2)) + Normal Bonus
-    const option1 = 0.2 * quiz1 + 0.2 * quiz2 + 0.45 * finalExam;
-    const option2 = 0.5 * finalExam + 0.25 * Math.max(quiz1, quiz2);
-
-    total = 0.15 * gaa + Math.max(option1, option2);
+    // T = 0.1GAA + 0.4F + 0.25Qz1 + 0.25Qz2 + Normal Bonus
+    total = 0.1 * gaa + 0.4 * finalExam + 0.25 * quiz1 + 0.25 * quiz2;
 
     // Add normal bonus if total is passing (≥40)
     if (total >= 40) {
@@ -330,6 +318,43 @@ export function calculateDegreeTotal(params: DegreeParams): number {
     // Add bonuses if total is passing (≥40)
     if (total >= 40) {
       total += llmProgrammingBonus + normalBonus;
+    }
+  }
+  // New subjects - 4th batch
+  else if (subject === 'computer_networks') {
+    // T = 0.1GAA + 0.3F + 0.25Qz1 + 0.25Qz2 + 0.1 Programming Assignment + Normal Bonus
+    total = 0.1 * gaa + 0.3 * finalExam + 0.25 * quiz1 + 0.25 * quiz2 + 0.1 * gaap;
+
+    // Add normal bonus if total is passing (≥40)
+    if (total >= 40) {
+      total += normalBonus;
+    }
+  }
+  else if (subject === 'data_science_ai_lab') {
+    // T = 0.05GAA + 0.25Quiz + 0.4Project + 0.3Viva + Bonus
+    total = 0.05 * gaa + 0.25 * quiz2 + 0.4 * project + 0.3 * (params.viva || 0);
+
+    // Add normal bonus if total is passing (≥40)
+    if (total >= 40) {
+      total += normalBonus;
+    }
+  }
+  else if (subject === 'app_dev_lab') {
+    // T = 0.2Quiz2 + 0.3 Weekly Assignments + 0.5 Project Viva
+    total = 0.2 * quiz2 + 0.3 * gaa + 0.5 * (params.viva || 0);
+
+    // Add normal bonus if total is passing (≥40)
+    if (total >= 40) {
+      total += normalBonus;
+    }
+  }
+  else if (subject === 'market_research') {
+    // T = 0.1GAA + 0.2Qz1 + 0.2Qz2 + 0.25Project + 0.25F + Normal Bonus
+    total = 0.1 * gaa + 0.2 * quiz1 + 0.2 * quiz2 + 0.25 * project + 0.25 * finalExam;
+
+    // Add normal bonus if total is passing (≥40)
+    if (total >= 40) {
+      total += normalBonus;
     }
   }
 
@@ -526,7 +551,7 @@ function getDegreeFormula(subject: string): string {
     'financial_forensics': 'T = 0.1×GAA + max(0.25×Qz1 + 0.3×GP1 + 0.35×F, 0.5×F + 0.3×max(Qz1,GP1)) + Bonus',
     'nlp': 'T = 0.1×GAA + 0.5×F + 0.2×Qz1 + 0.2×Qz2 + Bonus',
     'corporate_finance': 'T = 0.1×GAA + 0.4×F + 0.2×Qz1 + 0.3×Qz2 + Bonus',
-    'deep_learning_practice': 'T = 0.2×GA + 0.15×Qz1 + 0.15×Qz2 + 0.15×Qz3 + 0.2×Best NPPE + 0.15×2nd NPPE + 0.1×3rd NPPE + Bonus',
+    'deep_learning_practice': 'T = 0.05×GA + 0.15×Qz1 + 0.15×Qz2 + 0.15×Qz3 + 0.25×Avg(NPPE) + 0.25×Viva + Bonus',
     'deep_learning_cv': 'T = 0.1×GAA + 0.4×F + 0.25×Qz1 + 0.25×Qz2 + Bonus',
     'data_visualization': 'T = 0.3×GA + max(0.2×Qz1 + 0.2×Qz2, 0.3×max(Qz1,Qz2)) + 0.3×P + Bonus',
     'managerial_economics': 'T = 0.15×GAA + max(0.2×Qz1 + 0.2×Qz2 + 0.45×F, 0.5×F + 0.25×max(Qz1,Qz2)) + Bonus',
@@ -589,6 +614,11 @@ export const degreeSubjects = [
   { value: 'special_topics_ml', label: 'Special Topics in ML (Reinforcement Learning)', credits: 4 },
   { value: 'big_data_biological_networks', label: 'Big Data & Biological Networks', credits: 4 },
   { value: 'large_language_models', label: 'Large Language Models', credits: 4 },
+  // Fourth batch - new courses
+  { value: 'computer_networks', label: 'Computer Networks', credits: 4 },
+  { value: 'data_science_ai_lab', label: 'Data Science and AI Lab', credits: 4 },
+  { value: 'app_dev_lab', label: 'Application Development Lab', credits: 4 },
+  { value: 'market_research', label: 'Market Research', credits: 4 },
 ];
 
 /**
@@ -661,7 +691,7 @@ export function getSubjectDetails(subject: string) {
       return {
         code: 'DGDLP',
         name: 'Deep Learning Practice',
-        requiredFields: ['ga', 'quiz1', 'quiz2', 'quiz3', 'nppe1', 'nppe2', 'nppe3', 'normalBonus']
+        requiredFields: ['ga', 'quiz1', 'quiz2', 'quiz3', 'nppe1', 'nppe2', 'nppe3', 'viva', 'normalBonus']
       };
     case 'deep_learning_cv':
       return {
@@ -686,7 +716,7 @@ export function getSubjectDetails(subject: string) {
       return {
         code: 'DGAT',
         name: 'Algorithmic Thinking in Bioinformatics',
-        requiredFields: ['gaa', 'quiz1', 'quiz2', 'finalExam', 'normalBonus']
+        requiredFields: ['gaa', 'gaap', 'quiz1', 'quiz2', 'finalExam', 'normalBonus']
       };
     case 'industry_4_0':
       return {
@@ -730,6 +760,31 @@ export function getSubjectDetails(subject: string) {
         code: 'DGLLM',
         name: 'Large Language Models',
         requiredFields: ['gaa', 'quiz1', 'quiz2', 'finalExam', 'llmProgrammingBonus', 'normalBonus']
+      };
+    // Fourth batch - new courses
+    case 'computer_networks':
+      return {
+        code: 'DGCN',
+        name: 'Computer Networks',
+        requiredFields: ['gaa', 'gaap', 'quiz1', 'quiz2', 'finalExam', 'normalBonus']
+      };
+    case 'data_science_ai_lab':
+      return {
+        code: 'DGDSAL',
+        name: 'Data Science and AI Lab',
+        requiredFields: ['gaa', 'quiz2', 'project', 'viva', 'normalBonus']
+      };
+    case 'app_dev_lab':
+      return {
+        code: 'DGADL',
+        name: 'Application Development Lab',
+        requiredFields: ['gaa', 'quiz2', 'viva', 'normalBonus']
+      };
+    case 'market_research':
+      return {
+        code: 'DGMR',
+        name: 'Market Research',
+        requiredFields: ['gaa', 'quiz1', 'quiz2', 'project', 'finalExam', 'normalBonus']
       };
     default:
       return {
